@@ -1,0 +1,116 @@
+import React, { useEffect, useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { Easing, SharedValue, useAnimatedStyle, useDerivedValue, useSharedValue, cancelAnimation, withRepeat, withSpring, withTiming } from 'react-native-reanimated';
+import { Card } from '../types/card';
+import { CardDetails, CardFrame } from './CardFrame';
+
+const limit = (n: number) => { 'worklet'; return Math.max(-1, Math.min(1, n)); };
+export function LayeredCard({ card, width, tiltX, tiltY, selected, onLoad, onError }: { card: Card; width: number; tiltX: SharedValue<number>; tiltY: SharedValue<number>; selected: boolean; onLoad: (layer: string) => void; onError: () => void }) {
+  const [isBack, setIsBack] = useState(false);
+  const turn = useSharedValue(0);
+  const dragX = useSharedValue(0), dragY = useSharedValue(0), shimmer = useSharedValue(0);
+  useEffect(() => {
+    if (selected) shimmer.value = withRepeat(withTiming(1, { duration: 5500, easing: Easing.inOut(Easing.sin) }), -1, true);
+    else { cancelAnimation(shimmer); shimmer.value = 0; }
+    return () => { cancelAnimation(shimmer); };
+  }, [selected, shimmer]);
+  const pan = Gesture.Pan().onUpdate(e => {
+    dragX.value = limit(e.translationX / (width * .35));
+    dragY.value = limit(e.translationY / (width * .5));
+  }).onFinalize(() => {
+    dragX.value = withSpring(0, { damping: 20, stiffness: 140 });
+    dragY.value = withSpring(0, { damping: 20, stiffness: 140 });
+  });
+  const flipCard = () => {
+    const target = isBack ? 0 : 180;
+    turn.value = withSpring(target, { damping: 20, stiffness: 115 });
+    setIsBack(!isBack);
+  };
+  const tiltHorizontal = useDerivedValue(() => limit(tiltX.value * .45 + dragX.value * .7));
+  const tiltVertical = useDerivedValue(() => limit(tiltY.value * .45 + dragY.value * .7));
+  const rotationX = useDerivedValue(() => -tiltVertical.value * 5);
+  const rotationY = useDerivedValue(() => turn.value + tiltHorizontal.value * 5);
+  const cardStyle = useAnimatedStyle(() => ({ transform: [{ perspective: 2400 }, { rotateX: `${rotationX.value}deg` }, { rotateY: `${rotationY.value}deg` }] }));
+  const frontVisibility = useAnimatedStyle(() => ({ opacity: Math.cos(rotationY.value * Math.PI / 180) >= 0 ? 1 : 0 }));
+  const backVisibility = useAnimatedStyle(() => ({ opacity: Math.cos(rotationY.value * Math.PI / 180) < 0 ? 1 : 0 }));
+  const backStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1.08 }, { translateX: -tiltHorizontal.value * 5 }, { translateY: -tiltVertical.value * 4 }] }));
+  const heroStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 7 }, { translateY: tiltVertical.value * 6 }, { scale: 1.08 }] }));
+  const frontStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 12 }, { translateY: tiltVertical.value * 10 }, { scale: 1.08 }] }));
+  const titleStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 3 }, { translateY: tiltVertical.value * 2 }] }));
+  const frameGlowStyle = useAnimatedStyle(() => ({ opacity: .55 + shimmer.value * .45 }));
+  const titleShineStyle = useAnimatedStyle(() => ({ transform: [{ translateX: (shimmer.value * 1.6 - .46 + tiltHorizontal.value * .2) * width }, { rotate: '25deg' }] }));
+  const shineStyle = useAnimatedStyle(() => ({ opacity: .18 + Math.abs(tiltHorizontal.value) * .13, transform: [{ translateX: (shimmer.value * 1.6 - .55 + tiltHorizontal.value * .2) * width }, { rotate: '25deg' }] }));
+  const cardHeight = width * 1.5;
+  const renderHero = (left: number, top: number) => <Animated.View style={[{ position: 'absolute', left, top, width: width + 14, height: cardHeight + 7 }, heroStyle]}>
+    <Image source={card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />
+  </Animated.View>;
+  return <View style={styles.inspector}><GestureDetector gesture={pan}><View style={{ width, height: width * 1.5 }}>
+    <Animated.View accessible accessibilityLabel={`${card.name}, ${isBack ? 'card back' : 'card front'}. Drag to tilt.`} style={[{ width, height: width * 1.5 }, styles.cardBody, cardStyle]}>
+    <View pointerEvents="none" style={styles.cardCore} />
+    <Animated.View pointerEvents="none" style={[styles.face, frontVisibility]}>
+    <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} /></Animated.View></View>
+    <View pointerEvents="none" style={styles.artWindow}><Animated.View style={[styles.overlay, frontStyle]}><Image source={card.foreground} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('foreground')} onError={onError} /><View style={[StyleSheet.absoluteFill, { opacity: .8 }]}><Image source={card.effects} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('effects')} onError={onError} /></View></Animated.View></View>
+    <View pointerEvents="none" style={styles.lightClip}><Animated.View style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d4aa', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>
+    <View pointerEvents="none" style={[styles.lowerHeroClip, { top: cardHeight * .75 }]}>{renderHero(-7, -cardHeight * .75 - 7)}</View>
+    <CardFrame onLoad={onLoad} onError={onError} glowStyle={frameGlowStyle} />
+    <View pointerEvents="none" style={[styles.heroClip, { bottom: cardHeight * .25 }]}>{renderHero(53, 53)}</View>
+    <CardDetails card={card} titleStyle={titleStyle} titleShineStyle={titleShineStyle} onLoad={onLoad} onError={onError} />
+    </Animated.View>
+    <Animated.View pointerEvents="none" style={[styles.face, styles.backFace, backVisibility]}>
+      <Image source={require('../../assets/cards/shared/back-sherlock.png')} style={styles.image} resizeMode="cover" onLoad={() => onLoad('back')} onError={onError} />
+      <View style={styles.backRim} />
+      <View style={styles.lightClip}><Animated.View style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d488', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>
+    </Animated.View>
+  </Animated.View></View></GestureDetector>
+  <Pressable accessibilityRole="button" accessibilityLabel={isBack ? 'Show card front' : 'Show card back'} onPress={flipCard} style={styles.turnButton}>
+    <Text style={styles.turnText}>↻  {isBack ? 'SHOW FRONT' : 'FLIP CARD'}</Text>
+  </Pressable></View>;
+}
+const styles = StyleSheet.create({
+  inspector: { alignItems: 'center' },
+  cardBody: { shadowColor: '#000', shadowOpacity: .7, shadowRadius: 16, shadowOffset: { width: 0, height: 9 }, elevation: 8 },
+  cardCore: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28, backgroundColor: '#30251b', borderWidth: 1, borderColor: '#c99b4d' },
+  face: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
+  backFace: { transform: [{ rotateY: '180deg' }], borderRadius: 20, overflow: 'hidden', backgroundColor: '#101b25' },
+  backRim: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 20, borderWidth: 2, borderColor: '#d5b677' },
+  turnButton: { paddingVertical: 10, paddingHorizontal: 20, marginTop: 7 },
+  turnText: { color: '#d6c39e', fontSize: 10, fontWeight: '700', letterSpacing: 1.8 },
+  artWindow: { position: 'absolute', top: 1, right: 1, bottom: 1, left: 1, borderRadius: 27, overflow: 'hidden' },
+  image: { width: '100%', height: '100%' },
+  heroClip: { position: 'absolute', left: -60, right: -60, top: -60, overflow: 'hidden' },
+  lowerHeroClip: { position: 'absolute', left: 0, right: 0, bottom: 0, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' },
+  overlay: { position: 'absolute', left: -10, right: -10, top: -10, bottom: -5 },
+  lightClip: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 28, overflow: 'hidden' },
+  shine: { position: 'absolute', width: '35%', height: '160%', top: '-30%' },
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Legends Unbound",
+    "slug": "legends-unbound",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.legendsunbound.showcase"
+    },
+    "plugins": [
+      "expo-sensors",
+      "expo-asset"
+    ]
+  }
+}
