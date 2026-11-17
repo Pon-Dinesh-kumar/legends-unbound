@@ -7,6 +7,7 @@ import Animated, { Easing, SharedValue, useAnimatedStyle, useDerivedValue, useRe
 import { Card } from '../types/card';
 import { CardDetails, CardFrame } from './CardFrame';
 import { sherlockScarfBase, sherlockScarfFrames } from '../data/sherlockScarf';
+import { draculaCapeBase, draculaCapeFrames } from '../data/draculaCape';
 
 const limit = (n: number) => { 'worklet'; return Math.max(-1, Math.min(1, n)); };
 const ScarfMask = MaskedView as unknown as React.ComponentType<React.ComponentProps<typeof View> & { maskElement: React.ReactElement }>;
@@ -22,7 +23,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, onLoad, onErr
     return () => { cancelAnimation(shimmer); };
   }, [selected, shimmer]);
   useEffect(() => {
-    if (card.id === 'sherlock' && selected && !isBack && !reducedMotion) {
+    if ((card.id === 'sherlock' || card.id === 'dracula') && selected && !isBack && !reducedMotion) {
       scarfPhase.value = withRepeat(withTiming(2, { duration: 5000, easing: Easing.inOut(Easing.sin) }), -1, true);
     } else {
       cancelAnimation(scarfPhase);
@@ -57,6 +58,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, onLoad, onErr
   const scarfFrame1 = useAnimatedStyle(() => ({ opacity: Math.min(1, scarfPhase.value) }));
   const scarfFrame2 = useAnimatedStyle(() => ({ opacity: Math.max(0, scarfPhase.value - 1) }));
   const scarfWave = useAnimatedStyle(() => ({ transform: [{ translateY: -cardHeight * .035 }, { rotate: `${Math.sin(scarfPhase.value * Math.PI) * 1.5}deg` }] }));
+  const capeWave = useAnimatedStyle(() => ({ transform: [{ rotate: `${Math.sin(scarfPhase.value * Math.PI) * 1.2}deg` }] }));
   const frameGlowStyle = useAnimatedStyle(() => ({ opacity: .55 + shimmer.value * .45 }));
   const titleShineStyle = useAnimatedStyle(() => ({ transform: [{ translateX: (shimmer.value * 1.6 - .46 + tiltHorizontal.value * .2) * width }, { rotate: '25deg' }] }));
   const shineStyle = useAnimatedStyle(() => ({ opacity: .18 + Math.abs(tiltHorizontal.value) * .13, transform: [{ translateX: (shimmer.value * 1.6 - .55 + tiltHorizontal.value * .2) * width }, { rotate: '25deg' }] }));
@@ -66,7 +68,12 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, onLoad, onErr
     <Animated.View style={[StyleSheet.absoluteFill, scarfFrame2]}><Image source={sherlockScarfFrames[2]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('scarf-2')} onError={onError} /></Animated.View>
   </Animated.View>;
   const renderHero = (left: number, top: number) => <Animated.View style={[{ position: 'absolute', left, top, width: width + 14, height: cardHeight + 7 }, heroStyle]}>
-    <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />
+    {card.id === 'dracula' && <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: [(width + 14) * .25, (cardHeight + 7) * .33, 0] }, capeWave]}>
+      <Image source={draculaCapeFrames[0]} resizeMode="contain" style={styles.scarf} onLoad={() => onLoad('cape-0')} onError={onError} />
+      <Animated.View style={[StyleSheet.absoluteFill, scarfFrame1]}><Image source={draculaCapeFrames[1]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-1')} onError={onError} /></Animated.View>
+      <Animated.View style={[StyleSheet.absoluteFill, scarfFrame2]}><Image source={draculaCapeFrames[2]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-2')} onError={onError} /></Animated.View>
+    </Animated.View>}
+    <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.id === 'dracula' ? draculaCapeBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />
     {card.id === 'sherlock' && (Platform.OS === 'web' ? React.createElement('div', {
       'aria-hidden': true,
       style: { position: 'absolute', inset: 0, pointerEvents: 'none', maskImage: 'linear-gradient(to right, transparent 43%, black 51%)', WebkitMaskImage: 'linear-gradient(to right, transparent 43%, black 51%)' },

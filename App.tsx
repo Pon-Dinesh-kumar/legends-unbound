@@ -29,7 +29,7 @@ function Showcase({ onLoaded, onError }: { onLoaded: () => void; onError: () => 
   const cardWidth = Math.min(width * .72, (height - 350) / 1.5, 350);
   const markLoaded = (cardId: string, layer: string) => {
     loadedLayers.current.add(`${cardId}:${layer}`);
-    if (!reportedReady.current && loadedLayers.current.size === cards.length * 7 + 3) {
+    if (!reportedReady.current && loadedLayers.current.size === cards.length * 7 + 6) {
       reportedReady.current = true;
       onLoaded();
     }

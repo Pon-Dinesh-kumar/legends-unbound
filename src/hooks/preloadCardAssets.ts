@@ -2,10 +2,12 @@ import { Asset } from 'expo-asset';
 import { Image, Platform } from 'react-native';
 import { cards } from '../data/cards';
 import { sherlockScarfBase, sherlockScarfFrames } from '../data/sherlockScarf';
+import { draculaCapeBase, draculaCapeFrames } from '../data/draculaCape';
 
 const cardImages = [
   ...cards.flatMap(card => [card.background, card.character, card.foreground, card.effects, card.titleImage]),
   sherlockScarfBase, ...sherlockScarfFrames,
+  draculaCapeBase, ...draculaCapeFrames,
   require('../../assets/cards/shared/frame-v3.png'),
   require('../../assets/cards/shared/back-sherlock.png'),
 ];

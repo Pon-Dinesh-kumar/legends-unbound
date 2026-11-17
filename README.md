@@ -8,4 +8,6 @@ Install dependencies with `npm install`, then run `npx expo start`. Open the pro
 
 The artwork is composited from separate background, character, foreground, and effects PNGs. A shared transparent frame PNG is combined with native gems, plaques, and typography. See `ART_DIRECTION.md` for the shared visual brief. Device motion and performance should be verified on actual iOS and Android hardware.
 
+The proposed reusable asset contract, evolution levels, animation requirements, and implementation plan are in [Card asset generation and assembly](docs/CARD_ASSET_GUIDELINES.md). The manifest-driven pipeline and evolution levels are planned, not yet implemented.
+
 
