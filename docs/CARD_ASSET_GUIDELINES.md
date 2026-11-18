@@ -1,134 +1,77 @@
 # Card asset generation and assembly
 
-This guide defines the **target contract** for a reusable card-generation pipeline. The current Expo showcase is a prototype: its three cards are registered in `src/data/cards.ts`, and the Sherlock scarf and Dracula cape have card-specific code. Evolution variants, a manifest-driven renderer, and automated validation described below still need to be built. See [Rollout plan](#rollout-plan).
+This guide describes the current evolution behavior and the target asset contract for a reusable card-generation pipeline. The locked visual style and reusable prompt are in [ART_DIRECTION.md](../ART_DIRECTION.md). The level selector is implemented; the generic manifest-driven renderer, validation and asset pipeline remain future work.
 
 ## One character, three evolutions
 
-Every card family has three visually distinct versions of the same recognizable character. Preserve identity, palette, silhouette and story across the versions; increase costume detail, lighting, pose, environment and sense of power deliberately rather than merely recoloring the same image. Each evolution has its own complete, registered artwork. Shared assets may be referenced when they actually fit.
+Generate **one shared set of artwork per card**. Origin, Awakened and Unbound use the same character, costume, pose, environment, title, stats, palette and shared border. Do not generate separate character or background art for an evolution. The visual difference comes from clipping, frame break and motion.
 
-| Level | Art direction | Frame and movement |
-| --- | --- | --- |
-| **Origin** | Establish the character and setting in a clear, restrained composition. | All content, including the character and title, stays inside the frame. No idle animation, shimmer, glow pulse, parallax, gyro or drag tilt. The card back can be shown with an immediate state change. |
-| **Awakened** | A more confident pose, stronger lighting and richer costume or environmental details. | The character may break the top and side edges of the frame. The character stays within the frame along the bottom quarter so the border is visible. No idle animation, shimmer, parallax, gyro or drag tilt; switching to the back is immediate. |
-| **Unbound** | The most dramatic, fully realized version, still recognizable as the same character. | Character frame break follows the Awakened rule. Enable subtle interactive card tilt and layered parallax, plus **two or three independently authored, slow animation details per card**. Keep the approved title and frame shimmer; do not apply shimmer to the character. |
+| Level | Presentation |
+| --- | --- |
+| **Origin** | The character, environment and title stay inside the shared frame. The card itself can tilt slightly left and right; its layers stay flat together. No automatic animation, shimmer or parallax. The back opens immediately. |
+| **Awakened** | The same character may break above and beside the frame; the environment remains clipped and the bottom quarter of the character stays behind the frame. The title may extend beyond the frame. The card itself can tilt slightly left and right; its layers stay flat together. No automatic animation, shimmer or parallax. The back opens immediately. |
+| **Unbound** | The same frame break as Awakened, plus subtle interactive tilt, layered parallax, title/frame shimmer and any available character animation tracks. Character shimmer remains disabled. |
 
-The large centered bottom title, top-left cost, top-right power and **one shared gold frame** are consistent across the collection. For Awakened and Unbound, a title may extend past the frame as in the approved prototype; it must not make the stats unreadable. Environment and decorative foreground remain clipped to the card. The character is drawn over the frame where frame break is allowed; in the bottom quarter the frame is drawn over the character. Do not generate a different border for each card.
+The same `frame-v3.png` is used at every level. Cost remains top-left, power top-right, and the large name bottom-center. A shared three-diamond marker is integrated directly into the center of the bottom frame edge, with no separate capsule: one filled for Origin, two for Awakened, and all three filled and gently shining for Unbound. The other diamonds remain dark, with visible outlines. The marker belongs to the card UI, above the art and title, and does not require new card-specific assets. In Awakened and Unbound the character is above the frame at the top and sides, while the lower quarter remains clipped behind it so the border is visible. Environment and foreground do not break the frame. The title may extend past the frame in Awakened and Unbound, but must stay inside in Origin.
 
-Only Unbound has animation tracks. Each card family must supply two or three distinct, purposeful Unbound details, such as Sherlock's scarf and lens glint, Dracula's cape and a bat, or Tarzan's hair and a leaf. A foil sweep, moving the entire illustration, or duplicated translucent artwork does not count as a character or environmental animation detail. Origin and Awakened do not play these tracks. Reduced-motion mode displays a complete still pose and disables tilt, shimmer and animated tracks; interaction must remain usable.
+All levels can show the shared back. Reduced-motion mode keeps a complete still pose and disables tilt, shimmer and character animation. Preserve access to the flip control. Changes apply to every existing card: Sherlock currently has a scarf animation, Dracula a cape animation, and Tarzan no character-specific animation. Only the active Unbound front runs its character track. The goal for **future complete Unbound cards** is two or three distinct, independently authored details; do not claim the current prototypes meet that target or fabricate missing assets.
+
+## Current implementation
+
+- `src/data/evolutions.ts` defines the level labels and the frame-break and motion policies. `App.tsx` owns the selected level and passes it to every card. The selection is shared across the current collection and defaults to Origin.
+- `src/components/LayeredCard.tsx` composes the same art for all levels. Origin uses a rounded clip behind the frame; Awakened and Unbound use upper frame-break and lower clipped portions. All levels allow a small card-only horizontal tilt, but only Unbound adds independent gesture/gyro parallax and the selected front's existing scarf/cape track. Origin and Awakened flip without a turn animation.
+- `src/components/CardFrame.tsx` keeps the shared frame and stat gems; Origin fits the same title inside the frame. Title and frame shimmer are enabled only for Unbound when reduced motion is off.
+- `src/hooks/preloadCardAssets.ts` preloads the current collection, including the rest/animation images. `App.tsx` currently tracks the mounted image callbacks with a fixed count; a manifest-based readiness system remains planned. Keep all frame callbacks working when adding assets.
 
 ## Shared visual and technical contract
 
-- Follow the locked style, reusable prompt and approval checks in [ART_DIRECTION.md](../ART_DIRECTION.md) for every layer and evolution. Interpret original stories, comics or cartoons without copying existing logos or actor likenesses. Match the existing cards' illustrated finish rather than changing art styles per character.
-- Compose in a portrait **2:3** reference space, preferably **1024 × 1536** pixels for generated source layers. Keep the camera, horizon, lighting direction and character proportions aligned for all layers of one evolution. Export transparent overlays as RGBA PNG with clean alpha; backgrounds are opaque PNGs. Do not bake the frame, title, cost, power, other text or UI into character/environment assets.
-- Plan overflow before generation. Supply an explicit canvas-to-card transform and any extra transparent padding needed for top/side frame break. Do not stretch or crop independent layers differently. Record normalized placement, pivot and clipping bounds in the manifest, and preview at the final card size. The 2:3 reference rectangle is the card face; overflow lies outside it, not in an environment layer.
-- Use a single consistent coordinate system per evolution. Every base, animation frame, mask and underpainting must register exactly at the declared dimensions and anchor. Avoid opaque backgrounds, accidental colored halos, baked checkerboards, shadows outside the intended silhouette, inconsistent edges, text and watermarks.
-- A character and its animation pieces must form a complete image at every frame. Provide an underpainted base where a piece was removed, plus independently isolated moving pieces. Finish the surfaces that motion reveals. Keep faces, hands and other still details stable. Do not leave a hidden copy of the moving part behind it.
-- Keep animation layers separated by depth: an item behind the character, an item in front, and effects behind the title are distinct layers when necessary. Character-attached animation inherits the character transform and clipping; environment details stay inside the frame. Do not move the whole card to simulate cloth or hair.
-- Prefer small, seamless cycles with coherent silhouettes and consistent anchor points. Supply a still/rest frame and a loop that returns smoothly to it. Use either registered frame sequences or an explicitly authored deformable mesh/rig. Do not assume AI-generated frames are aligned: compare their attachment points, shapes, alpha, lighting and revealed underpainting. Avoid dissolve ghosting between visibly different silhouettes. Use separate frames where image blending creates doubles.
-- Optimize and profile final assets on target devices. Reuse the shared frame and back; decode and load only what the active card/evolution needs while warming assets before display. Define a fallback still image, handle load failures, pause tracks for hidden cards and backs, and release resources when no longer needed. The current prototype eagerly preloads all cards; replacing that is planned work.
+- Use [ART_DIRECTION.md](../ART_DIRECTION.md) for the fixed collection style, character inspiration and approval criteria. Follow it for backgrounds, character parts and animation frames alike.
+- Work in portrait **2:3**, preferably **1024 × 1536** pixels. Backgrounds are opaque; character, foreground, effect, title and animation overlays are transparent RGBA PNGs. Do not bake borders, UI, text, cost or power into the art.
+- Register every layer, underpainting and animation frame to the same card coordinate space. Plan top/side overflow with transparent padding and explicit placement; never let an environment layer overflow. Preserve the original shared character and setting across levels.
+- Each independently moving detail needs a finished base beneath it, a clean isolated rest pose and a smooth registered loop or authored rig. Keep faces and hands fixed where they are not intended to move. Do not animate a translucent duplicate over a baked-in moving piece. Preserve silhouette, lighting and attachment throughout the loop; inspect for ghosting, seams and flicker.
+- Keep attachment depth explicit: for example, Dracula's cape belongs behind his body and hand, while Sherlock's scarf lies in front of his coat. Attached pieces must follow the character transform, obey the level's clip, stop on the back and respect reduced motion.
+- Reuse the same shared front frame and current shared back. Preload and decode needed assets before showing a card, handle load errors, and stop unused animation. Verify performance and memory on real target devices; an export is not a device test.
 
-## Card package layout
+## Proposed plug-and-play package
 
-This is the proposed source layout, not a claim about the current directory structure. Names are stable identifiers; file names are examples. A track can contain more than three frames when needed for a smooth result.
+The following layout and manifest are a **future pipeline design**, not current runtime behavior. The package has one set of still artwork, not one folder of different artwork per level. A track can contain as many frames as needed for a clean loop.
 
 ```text
 assets/cards/<card-id>/
-  card.ts                         # generated/maintained static registry entry
-  title.png                       # shared if the title fits all levels
-  origin/
-    background.png
-    character.png
-    foreground.png                # transparent; may be an empty transparent asset
-    effects.png                   # static visual accents only
-  awakened/
-    background.png
-    character.png
-    foreground.png
-    effects.png
-  unbound/
-    background.png
-    character-base.png            # completed beneath removed moving pieces
-    foreground.png
-    effects.png
-    animation/
-      scarf/
-        rest.png
-        frame-00.png
-        frame-01.png
-        frame-02.png
-      lens-glint/
-        rest.png
-        frame-00.png
-        frame-01.png
-        frame-02.png
+  card.ts                      # future static registry entry
+  background.png
+  character.png               # complete still artwork, or the composited rest pose
+  character-base.png          # finished underpainting if a track needs it
+  foreground.png
+  effects.png
+  title.png
+  animation/
+    <track-id>/
+      rest.png
+      frame-00.png
+      frame-01.png
+      frame-02.png
 assets/cards/shared/
-  frame-v3.png                    # same front frame for every card and level
-  back-sherlock.png               # current shared prototype back
+  frame-v3.png
+  back-sherlock.png
 ```
 
-Each evolution needs a background, character, foreground and effects layer, even if a transparent layer has no visible content. Its manifest must describe the canvas size, layer asset references, order, fit and placement, overflow/clipping rules, and title placement. Each Unbound animation track must also specify a unique id, kind (frame sequence or rig), depth relative to the character and frame, rest pose, ordered frames, timing and loop behavior, anchor/registration and any mask. Animation layers are transparent, registered to the same canvas, and stay together with their owning layer during tilt and flip.
+The future typed registry should declare card metadata, stat values, each shared layer, canvas dimensions, placement and clipping, plus optional animation tracks with depth, anchors, masks, rest pose, ordered frames, timing and loop behavior. Evolution behavior should come from a shared policy, not duplicated card art or per-card rendering branches. Expo's Metro bundler requires statically analyzable `require('literal/path.png')` calls; generate a static TypeScript registry from validated source manifests rather than using dynamic runtime `require()` paths.
 
-## Manifest contract and insertion
-
-Use a typed **static TypeScript registry** for bundled Expo assets: Metro needs statically analyzable `require('literal/path.png')` calls. The schema below is illustrative; the types, fields, and generic renderer are **not implemented yet**. A future external pipeline can generate this registry from a validated source manifest. Do not rely on dynamic string-based `require()` paths at runtime.
-
-```ts
-// Proposed shape, abbreviated: all three evolution entries are required.
-const card = {
-  id: 'sherlock',
-  name: 'SHERLOCK HOLMES',
-  energy: 3,
-  power: 4,
-  rarity: 'EPIC',
-  title: require('./title.png'),
-  evolutions: {
-    origin: {
-      canvas: { width: 1024, height: 1536 },
-      layers: {
-        background: require('./origin/background.png'),
-        character: require('./origin/character.png'),
-        foreground: require('./origin/foreground.png'),
-        effects: require('./origin/effects.png'),
-      },
-      // Include normalized transforms and clipping policy in the real schema.
-      animations: [],
-    },
-    awakened: { /* same required layer and placement fields; no animation tracks */ },
-    unbound: { /* same fields; two or three complete animation tracks */ },
-  },
-};
-```
-
-In the target pipeline, adding a card should require supplying its package and registry entry, then running validation and adding the entry to the catalog—not adding `if (card.id === ...)` branches to rendering or preload code. The renderer chooses a level policy, builds the shared composition from the registry, and derives readiness from the assets actually needed for that package. It must not use a fixed global count of loaded layers. Define explicit `loading`, `ready`, and `error` states; count each required asset once even if mounted in multiple clips, and never reveal a half-loaded character or animation.
-
-## Layer order and frame break
-
-Render each face in this order, with layers sharing their declared coordinate space:
-
-1. Card backing, clipped environment background and clipped foreground/effects.
-2. Character portions and their animation pieces that belong behind the frame, including the bottom quarter.
-3. The shared frame and its permitted Unbound treatment.
-4. Character portions and attached animation pieces allowed to break the top and side edges. Keep the lower quarter clipped and behind the frame.
-5. Large title, cost and power. Keep the numbers readable; the title remains above the art. Apply the approved Unbound title shimmer to the title itself.
-
-Place animation pieces at the correct depth within this order. A cape behind a body is rendered behind the body, not on top of a hand; a scarf in front of a coat is above it. The character and its pieces move together with interactive parallax. The back is a separate face and must not leak front layers during flip. Origin/Awakened use their static policies and never run the Unbound animation clock.
+The renderer should derive readiness from each package's actual required assets, deduplicate repeated mounts, and provide loading, ready and error states. A new card should be added by supplying validated art and a registry entry, without editing compositor logic. This is not yet implemented.
 
 ## Generation and review workflow
 
-1. Create a character brief covering source inspiration, identity, costume, palette, setting, signature details and the intended visual progression across all three levels. Select two or three Unbound actions before generating assets; identify their layer depth and where revealed art must be completed.
-2. Establish a full composition and register each level's separate background, character, foreground, effects and title. Supply each generator the fixed 2:3 framing, lighting, coordinates, transparency and no-UI constraints. Keep original sources and prompts alongside deliverables or in the production record.
-3. For every animated piece, prepare a clean base with the moving part removed and finish anything revealed. Produce the separate rest pose and aligned loop frames, or an authored rig. Compare anchors against the base in each frame and inspect alpha against light and dark backgrounds. Avoid adding an animated overlay on top of a baked-in copy.
-4. Add the package to the static registry. Validate complete required levels and fields, valid asset references, expected dimensions and alpha, exactly two or three Unbound tracks, nonempty frames, valid timing, consistent registration and allowed frame-break region. Report actionable errors before a card enters the catalog.
-5. Render the three evolutions at actual phone card size and inspect corners, character/title/stat layering, bottom-quarter clipping and face/back transition. Inspect the entire loop, not just the first frame; check for seams, duplicates, detached fabric, flicker, inconsistent shapes and overly subtle movement. Verify tilt, preloading, errors and reduced motion.
-6. Test on representative iOS and Android devices as well as web: measure frame pacing, memory and load time with one and multiple cards, confirm only the selected Unbound front animates, and confirm switching levels/cards and flipping pause/resume cleanly. Set and record device-specific budgets based on measurements before scaling content. Bundle/export success alone is not a device performance test.
+1. Prepare one card brief covering source inspiration, identity, palette, setting and signature details. Follow the locked collection style. Design one composition that works both inside the Origin frame and with Awakened/Unbound top and side frame break.
+2. Generate and register one set of background, character, foreground, effects and title assets. Separate any desired Unbound moving pieces from the static character and finish the underpainting. Keep prompts and source files with the production record.
+3. For future complete Unbound cards, plan two or three distinct details. Supply aligned rest poses and loop frames or a rig with explicit anchors and depth. A foil sweep or a drifting full illustration is not a character animation detail. Do not require additional artwork for the three levels themselves.
+4. Validate asset references, dimensions, alpha, shared coordinate space, attachment, loop timing and clipping. Check for no text or frame baked into the art and for a shared border. Reject detached or duplicated pieces and inconsistent frame shapes.
+5. Preview all levels at phone card size: verify Origin stays inside the frame; Awakened only unlocks frame break; Unbound adds motion without moving the whole image or changing the art. Check title/stat readability, the bottom-quarter border, all loop poses, card switching, flip, loading/error behavior and reduced motion.
+6. Test on representative iOS and Android devices as well as web. Measure frame pacing, memory and load time; verify tracks pause on inactive cards and on the back. Record budgets based on device measurements before scaling the catalog.
 
-## Rollout plan
+## Next pipeline work
 
-1. **Define the contract:** add typed card-family, evolution, layer and animation definitions; specify coordinates, frame-break limits, rest poses, required fields and validation errors. Treat this document as the acceptance criteria, not the current implementation.
-2. **Build the shared renderer:** replace card-id-specific branches and the fixed preload count with a manifest-driven compositor and asset readiness tracking. Preserve the existing shared frame, frame-break ordering, title shimmer, stats and back. Implement the three interaction policies and a reduced-motion still fallback.
-3. **Migrate Sherlock first:** preserve the accepted Unbound scarf as one track, prepare a second distinct detail such as a restrained lens glint, then create visually evolved Origin and Awakened artwork and their manifest entries. Inspect the registered frames and attachment at phone size before declaring the package reusable.
-4. **Migrate Dracula next:** adapt the cape prototype as one Unbound track, add one or two separately authored details, and produce Origin and Awakened artwork. Verify the cape remains behind the hand/body and the lower frame remains visible.
-5. **Migrate Tarzan:** create all three levels and two or three Unbound tracks, such as hair and a separate leaf, with completed underpainting and independent depth. Register him using the same contract without modifying renderer logic.
-6. **Automate the pipeline:** add a package validator and a registry generator for static `require` calls, plus a preview/review flow for each level and animation. Add meaningful tests for schema rejection, policy selection, load/error states, clipping and track lifecycle. Then profile representative devices and refine asset budgets before generating more cards.
-
-The existing scarf and cape are early prototypes with three cross-faded overlays each, not finished examples of the full contract. Neither has yet been validated as a complete two- or three-track Unbound card, and the existing cards do not yet have Origin/Awakened variants.
+1. Replace the hard-coded card-specific scarf/cape branches and fixed preload count with a typed package registry and generic compositor; keep the implemented shared evolution policies.
+2. Migrate Sherlock and Dracula's existing artwork and animation tracks into the registry without regenerating level artwork. Review the current three-frame cross-fades for visual artifacts.
+3. Add missing independently authored details only when creating or improving an Unbound card; the current two prototype tracks and Tarzan's static art are valid existing content, not a completed two-to-three-track catalog.
+4. Add package validation, generated static imports, tests for level policy and asset lifecycle, and an actual device performance review before scaling production.
