@@ -12,7 +12,7 @@ Generate **one shared set of artwork per card**. Origin, Awakened and Unbound us
 | **Awakened** | The same character may break above and beside the frame; the environment remains clipped and the bottom quarter of the character stays behind the frame. The title may extend beyond the frame. The card itself can tilt slightly left and right; its layers stay flat together. No automatic animation, shimmer or parallax. The back opens immediately. |
 | **Unbound** | The same frame break as Awakened, plus subtle interactive tilt, layered parallax, title/frame shimmer and any available character animation tracks. Character shimmer remains disabled. |
 
-The same `frame-legendary-v4.png` is used at every level. Cost remains top-left, power top-right, and the large name bottom-center. Three faceted diamond sockets are built into the bottom frame edge: one filled for Origin, two for Awakened, and all three filled and gently shining for Unbound. The other sockets remain dark obsidian with gold outlines. Active gem overlays must register exactly to the shared frame's sockets; if the frame image or its fit changes, update and verify their coordinates together. The marker belongs to the shared card UI, above the art and title, and does not require new card-specific assets. In Awakened and Unbound the character is above the frame at the top and sides, while the lower quarter remains clipped behind it so the border is visible. Environment and foreground do not break the frame. The title may extend past the frame in Awakened and Unbound, but must stay inside in Origin.
+The same `frame-legendary-v5.png` is used at every level. Cost remains top-left, power top-right, and the large name bottom-center. The shared frame has integrated matching gold-rimmed shields, blue for cost and crimson for power; render the white stat values separately over their centers and keep the shields above frame-breaking characters. Frame and badge shimmer is limited to animated Unbound and honors reduced motion. Three faceted diamond sockets are built into the bottom frame edge: one filled for Origin, two for Awakened, and all three filled and gently shining for Unbound. The other sockets remain dark obsidian with gold outlines. Active gem overlays and stat values must register exactly to the shared frame's sockets; if the frame image or its fit changes, update and verify their coordinates together. The marker belongs to the shared card UI, above the art and title, and does not require new card-specific assets. In Awakened and Unbound the character is above the frame at the top and sides, while the lower quarter remains clipped behind it so the border is visible. Environment and foreground do not break the frame. The title may extend past the frame in Awakened and Unbound, but must stay inside in Origin.
 
 All levels can show the shared back. Reduced-motion mode keeps a complete still pose and disables tilt, shimmer and character animation. Preserve access to the flip control. Changes apply to every existing card: Sherlock currently has a scarf animation, Dracula a cape animation, and Tarzan no character-specific animation. Only the active Unbound front runs its character track. The goal for **future complete Unbound cards** is two or three distinct, independently authored details; do not claim the current prototypes meet that target or fabricate missing assets.
 
@@ -52,7 +52,7 @@ assets/cards/<card-id>/
       frame-01.png
       frame-02.png
 assets/cards/shared/
-  frame-legendary-v4.png
+  frame-legendary-v5.png
   back-sherlock.png
 ```
 

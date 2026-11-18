@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Easing, SharedValue, useAnimatedStyle, useDerivedValue, useReducedMotion, useSharedValue, cancelAnimation, withRepeat, withSpring, withTiming } from 'react-native-reanimated';
 import { Card } from '../types/card';
-import { CardDetails, CardFrame, EvolutionBadge } from './CardFrame';
+import { CardDetails, CardFrame, EvolutionBadge, FrameStatCorners } from './CardFrame';
 import { sherlockScarfBase, sherlockScarfFrames } from '../data/sherlockScarf';
 import { draculaCapeBase, draculaCapeFrames } from '../data/draculaCape';
 import { Evolution, evolutionPolicy } from '../data/evolutions';
@@ -97,7 +97,8 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     </FrameInterior>
     <CardFrame onLoad={onLoad} onError={onError} animated={motionEnabled} shineStyle={shineStyle} />
     {frameBreak && <View pointerEvents="none" style={[styles.heroClip, { bottom: cardHeight * .25 }]}>{renderHero(53, 53)}</View>}
-    <CardDetails card={card} titleStyle={titleStyle} titleShineStyle={titleShineStyle} insideFrame={!frameBreak} animated={motionEnabled} onLoad={onLoad} onError={onError} />
+    <FrameStatCorners width={width} animated={motionEnabled} shineStyle={shineStyle} />
+    <CardDetails card={card} width={width} titleStyle={titleStyle} titleShineStyle={titleShineStyle} insideFrame={!frameBreak} animated={motionEnabled} onLoad={onLoad} onError={onError} />
     <EvolutionBadge level={level} animated={motionEnabled} glowStyle={badgeGlowStyle} width={width} />
     </Animated.View>
     <Animated.View pointerEvents="none" style={[styles.face, styles.backFace, backVisibility]}>

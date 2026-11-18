@@ -5,7 +5,7 @@ import Svg, { Polygon } from 'react-native-svg';
 
 const NativeMask = MaskedView as unknown as React.ComponentType<React.ComponentProps<typeof View> & { maskElement: React.ReactElement }>;
 
-// This polygon follows the inside of frame-legendary-v4's beveled outline.
+// This polygon follows the inside of frame-legendary-v5's beveled outline.
 const points = '3.5,10.5 13,3.8 36,3.8 50,2.7 64,3.8 87,3.8 96.5,10.5 96.5,87.5 89,96.7 11,96.7 3.5,87.5';
 const clipPath = `polygon(${points.split(' ').map(point => point.split(',').map(value => `${value}%`).join(' ')).join(', ')})`;
 
