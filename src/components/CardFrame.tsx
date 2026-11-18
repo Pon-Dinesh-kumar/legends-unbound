@@ -8,22 +8,33 @@ import { Card } from '../types/card';
 import { Evolution, evolutions } from '../data/evolutions';
 
 const TitleMask = MaskedView as unknown as React.ComponentType<React.ComponentProps<typeof View> & { maskElement: React.ReactElement }>;
+const frameAsset = require('../../assets/cards/shared/frame-legendary-v4.png');
 
-export function CardFrame({ onLoad, onError, glowStyle }: { onLoad: (layer: string) => void; onError: () => void; glowStyle: StyleProp<AnimatedStyle<ViewStyle>> }) {
+export function CardFrame({ onLoad, onError, animated, shineStyle }: { onLoad: (layer: string) => void; onError: () => void; animated: boolean; shineStyle: StyleProp<AnimatedStyle<ViewStyle>> }) {
+  const frameUri = Platform.OS === 'web' ? Asset.fromModule(frameAsset).uri : undefined;
+  const shine = <Animated.View style={[styles.frameShine, shineStyle]}><LinearGradient colors={['transparent', '#fff1b3b0', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View>;
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-    <Image source={require('../../assets/cards/shared/frame-v3.png')} resizeMode="stretch" style={styles.frameImage} onLoad={() => onLoad('frame')} onError={onError} />
-    <Animated.View style={[styles.frameGlow, glowStyle]} />
+    <Image source={frameAsset} resizeMode="stretch" style={styles.frameImage} onLoad={() => onLoad('frame')} onError={onError} />
+    {animated && <View style={styles.frameImage}>{Platform.OS === 'web' ? React.createElement('div', {
+      'aria-hidden': true,
+      style: { position: 'absolute', inset: 0, pointerEvents: 'none', maskImage: `url("${frameUri}")`, maskSize: '100% 100%', maskRepeat: 'no-repeat', WebkitMaskImage: `url("${frameUri}")`, WebkitMaskSize: '100% 100%', WebkitMaskRepeat: 'no-repeat' },
+    }, shine) : <TitleMask style={StyleSheet.absoluteFill} maskElement={<Image source={frameAsset} resizeMode="stretch" style={styles.nameImage} />}>{shine}</TitleMask>}</View>}
   </View>;
 }
 
-export function EvolutionBadge({ level, animated, glowStyle }: { level: Evolution; animated: boolean; glowStyle: StyleProp<AnimatedStyle<ViewStyle>> }) {
+export function EvolutionBadge({ level, animated, glowStyle, width }: { level: Evolution; animated: boolean; glowStyle: StyleProp<AnimatedStyle<ViewStyle>>; width: number }) {
   const filled = evolutions.indexOf(level) + 1;
-  return <View pointerEvents="none" style={styles.levelBadge}>
-    <View style={styles.levelRail} />
-    {evolutions.map((item, index) => <View key={item} style={[styles.diamond, index < filled ? styles.diamondFilled : styles.diamondEmpty]}>
-      {index < filled && <LinearGradient colors={['#fff3b4', '#d6a23a', '#7b5019']} start={{x:0,y:0}} end={{x:1,y:1}} style={StyleSheet.absoluteFill} />}
-      {index < filled && <View style={styles.diamondHighlight} />}
-      {animated && <Animated.View style={[styles.diamondShine, glowStyle]} />}
+  const side = width * .052;
+  const centers = [419 / 1024, 512 / 1024, 608 / 1024];
+  const top = width * 1.5 * (1.02 * (1475 / 1536) - .01) - side / 2;
+  return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+    {evolutions.map((item, index) => index < filled && <View key={item} style={[styles.diamondMount, { width: side, height: side, left: width * (1.02 * centers[index] - .01) - side / 2, top }]}>
+      <View style={styles.diamond}>
+        <LinearGradient colors={['#fff8c8', '#ffc437', '#a15b04']} start={{x:0,y:0}} end={{x:1,y:1}} style={StyleSheet.absoluteFill} />
+        <View style={styles.diamondFacet} />
+        <View style={styles.diamondHighlight} />
+        {animated && <Animated.View style={[styles.diamondShine, glowStyle]} />}
+      </View>
     </View>)}
   </View>;
 }
@@ -32,7 +43,6 @@ export function CardDetails({ card, titleStyle, titleShineStyle, insideFrame, an
   const titleUri = Platform.OS === 'web' ? Asset.fromModule(card.titleImage).uri : undefined;
   const shine = <Animated.View style={[styles.titleShine, titleShineStyle]}><LinearGradient colors={['transparent', '#fff5d6bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View>;
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-    <LinearGradient colors={['transparent', '#101113aa']} style={styles.titleShade} />
     <Animated.View style={[styles.nameArt, insideFrame && styles.nameArtInside, titleStyle]}>
       <Image source={card.titleImage} resizeMode="contain" style={styles.nameImage} onLoad={() => onLoad('title')} onError={onError} />
       {animated && (Platform.OS === 'web' ? React.createElement('div', {
@@ -55,15 +65,12 @@ export function CardDetails({ card, titleStyle, titleShineStyle, insideFrame, an
 
 const styles = StyleSheet.create({
   frameImage: { position: 'absolute', top: '-1%', left: '-1%', width: '102%', height: '102%' },
-  frameGlow: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28, borderWidth: 1, borderColor: '#ffe4a0', shadowColor: '#ffbe42', shadowOpacity: 1, shadowRadius: 7, shadowOffset: { width: 0, height: 0 } },
-  levelBadge: { position: 'absolute', bottom: -4, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 20 },
-  levelRail: { position: 'absolute', left: -8, right: -8, height: 2, top: 9, backgroundColor: '#c89a4b' },
-  diamond: { width: 14, height: 14, borderRadius: 1, borderWidth: 1, transform: [{ rotate: '45deg' }], overflow: 'hidden' },
-  diamondFilled: { borderColor: '#ffe7a2', backgroundColor: '#d4a344' },
-  diamondEmpty: { borderColor: '#8c6c39', backgroundColor: '#281e15' },
-  diamondHighlight: { position: 'absolute', top: 1, left: 1, width: 6, height: 2, backgroundColor: '#fff6ce', opacity: .85 },
+  frameShine: { position: 'absolute', width: '35%', height: '160%', top: '-30%' },
+  diamondMount: { position: 'absolute', transform: [{ rotate: '45deg' }], shadowColor: '#ffc44d', shadowOpacity: .85, shadowRadius: 3, shadowOffset: { width: 0, height: 0 } },
+  diamond: { width: '100%', height: '100%', borderWidth: 1, borderColor: '#ffe59a', backgroundColor: '#d5901d', overflow: 'hidden' },
+  diamondFacet: { position: 'absolute', top: '50%', bottom: 0, left: 0, right: 0, backgroundColor: '#b86705', opacity: .35 },
+  diamondHighlight: { position: 'absolute', top: 1, left: 1, width: '45%', height: 2, backgroundColor: '#fffbe0', opacity: .9 },
   diamondShine: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: '#fff2b0' },
-  titleShade: { position: 'absolute', left: 8, right: 8, bottom: 8, height: '24%', borderBottomLeftRadius: 12, borderBottomRightRadius: 12 },
   nameArt: { position: 'absolute', width: '118%', height: '30%', bottom: '-2%', alignSelf: 'center', justifyContent: 'center', alignItems: 'center' },
   nameArtInside: { width: '94%', height: '25%', bottom: '1%' },
   nameImage: { width: '100%', height: '100%' },

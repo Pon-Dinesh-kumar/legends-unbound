@@ -12,14 +12,14 @@ Generate **one shared set of artwork per card**. Origin, Awakened and Unbound us
 | **Awakened** | The same character may break above and beside the frame; the environment remains clipped and the bottom quarter of the character stays behind the frame. The title may extend beyond the frame. The card itself can tilt slightly left and right; its layers stay flat together. No automatic animation, shimmer or parallax. The back opens immediately. |
 | **Unbound** | The same frame break as Awakened, plus subtle interactive tilt, layered parallax, title/frame shimmer and any available character animation tracks. Character shimmer remains disabled. |
 
-The same `frame-v3.png` is used at every level. Cost remains top-left, power top-right, and the large name bottom-center. A shared three-diamond marker is integrated directly into the center of the bottom frame edge, with no separate capsule: one filled for Origin, two for Awakened, and all three filled and gently shining for Unbound. The other diamonds remain dark, with visible outlines. The marker belongs to the card UI, above the art and title, and does not require new card-specific assets. In Awakened and Unbound the character is above the frame at the top and sides, while the lower quarter remains clipped behind it so the border is visible. Environment and foreground do not break the frame. The title may extend past the frame in Awakened and Unbound, but must stay inside in Origin.
+The same `frame-legendary-v4.png` is used at every level. Cost remains top-left, power top-right, and the large name bottom-center. Three faceted diamond sockets are built into the bottom frame edge: one filled for Origin, two for Awakened, and all three filled and gently shining for Unbound. The other sockets remain dark obsidian with gold outlines. Active gem overlays must register exactly to the shared frame's sockets; if the frame image or its fit changes, update and verify their coordinates together. The marker belongs to the shared card UI, above the art and title, and does not require new card-specific assets. In Awakened and Unbound the character is above the frame at the top and sides, while the lower quarter remains clipped behind it so the border is visible. Environment and foreground do not break the frame. The title may extend past the frame in Awakened and Unbound, but must stay inside in Origin.
 
 All levels can show the shared back. Reduced-motion mode keeps a complete still pose and disables tilt, shimmer and character animation. Preserve access to the flip control. Changes apply to every existing card: Sherlock currently has a scarf animation, Dracula a cape animation, and Tarzan no character-specific animation. Only the active Unbound front runs its character track. The goal for **future complete Unbound cards** is two or three distinct, independently authored details; do not claim the current prototypes meet that target or fabricate missing assets.
 
 ## Current implementation
 
 - `src/data/evolutions.ts` defines the level labels and the frame-break and motion policies. `App.tsx` owns the selected level and passes it to every card. The selection is shared across the current collection and defaults to Origin.
-- `src/components/LayeredCard.tsx` composes the same art for all levels. Origin uses a rounded clip behind the frame; Awakened and Unbound use upper frame-break and lower clipped portions. All levels allow a small card-only horizontal tilt, but only Unbound adds independent gesture/gyro parallax and the selected front's existing scarf/cape track. Origin and Awakened flip without a turn animation.
+- `src/components/LayeredCard.tsx` composes the same art for all levels. `FrameInterior` follows the shared frame's beveled outline to clip the background, foreground and lower character without a rectangular shadow or scenery outside the frame. The title has no separate dark shading layer over the border. Origin fits the character inside that outline with enough headroom; Awakened and Unbound use upper frame-break and lower clipped portions. All levels allow a small card-only horizontal tilt, but only Unbound adds independent gesture/gyro parallax and the selected front's existing scarf/cape track. Origin and Awakened flip without a turn animation. Recheck the interior mask whenever the shared frame changes.
 - `src/components/CardFrame.tsx` keeps the shared frame and stat gems; Origin fits the same title inside the frame. Title and frame shimmer are enabled only for Unbound when reduced motion is off.
 - `src/hooks/preloadCardAssets.ts` preloads the current collection, including the rest/animation images. `App.tsx` currently tracks the mounted image callbacks with a fixed count; a manifest-based readiness system remains planned. Keep all frame callbacks working when adding assets.
 
@@ -52,7 +52,7 @@ assets/cards/<card-id>/
       frame-01.png
       frame-02.png
 assets/cards/shared/
-  frame-v3.png
+  frame-legendary-v4.png
   back-sherlock.png
 ```
 

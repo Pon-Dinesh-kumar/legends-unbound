@@ -9,6 +9,7 @@ import { CardDetails, CardFrame, EvolutionBadge } from './CardFrame';
 import { sherlockScarfBase, sherlockScarfFrames } from '../data/sherlockScarf';
 import { draculaCapeBase, draculaCapeFrames } from '../data/draculaCape';
 import { Evolution, evolutionPolicy } from '../data/evolutions';
+import { FrameInterior } from './FrameInterior';
 
 const limit = (n: number) => { 'worklet'; return Math.max(-1, Math.min(1, n)); };
 const ScarfMask = MaskedView as unknown as React.ComponentType<React.ComponentProps<typeof View> & { maskElement: React.ReactElement }>;
@@ -65,7 +66,6 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   const scarfFrame2 = useAnimatedStyle(() => ({ opacity: Math.max(0, scarfPhase.value - 1) }));
   const scarfWave = useAnimatedStyle(() => ({ transform: [{ translateY: -cardHeight * .035 }, { rotate: `${Math.sin(scarfPhase.value * Math.PI) * 1.5}deg` }] }));
   const capeWave = useAnimatedStyle(() => ({ transform: [{ rotate: `${Math.sin(scarfPhase.value * Math.PI) * 1.2}deg` }] }));
-  const frameGlowStyle = useAnimatedStyle(() => ({ opacity: .55 + shimmer.value * .45 }));
   const badgeGlowStyle = useAnimatedStyle(() => ({ opacity: .15 + shimmer.value * .55 }));
   const titleShineStyle = useAnimatedStyle(() => ({ transform: [{ translateX: (shimmer.value * 1.6 - .46 + tiltHorizontal.value * .2) * width }, { rotate: '25deg' }] }));
   const shineStyle = useAnimatedStyle(() => ({ opacity: .18 + Math.abs(tiltHorizontal.value) * .13, transform: [{ translateX: (shimmer.value * 1.6 - .55 + tiltHorizontal.value * .2) * width }, { rotate: '25deg' }] }));
@@ -87,17 +87,18 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     }, scarfLayers) : <ScarfMask style={StyleSheet.absoluteFill} maskElement={<LinearGradient colors={['transparent', 'transparent', '#fff', '#fff']} locations={[0, .43, .51, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} />}>{scarfLayers}</ScarfMask>)}
   </Animated.View>;
   return <View style={styles.inspector}><GestureDetector gesture={pan}><View style={{ width, height: width * 1.5 }}>
-    <Animated.View accessible accessibilityLabel={`${card.name}, ${evolutionPolicy[level].label}, level ${level === 'origin' ? 1 : level === 'awakened' ? 2 : 3} of 3, ${isBack ? 'card back' : 'card front'}.${tiltEnabled ? ' Drag to tilt.' : ''}`} style={[{ width, height: width * 1.5 }, styles.cardBody, cardStyle]}>
-    <View pointerEvents="none" style={styles.cardCore} />
+    <Animated.View accessible accessibilityLabel={`${card.name}, ${evolutionPolicy[level].label}, level ${level === 'origin' ? 1 : level === 'awakened' ? 2 : 3} of 3, ${isBack ? 'card back' : 'card front'}.${tiltEnabled ? ' Drag to tilt.' : ''}`} style={[{ width, height: width * 1.5 }, cardStyle]}>
     <Animated.View pointerEvents="none" style={[styles.face, frontVisibility]}>
-    <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} /></Animated.View></View>
-    <View pointerEvents="none" style={styles.artWindow}><Animated.View style={[styles.overlay, frontStyle]}><Image source={card.foreground} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('foreground')} onError={onError} /><View style={[StyleSheet.absoluteFill, { opacity: .8 }]}><Image source={card.effects} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('effects')} onError={onError} /></View></Animated.View></View>
-    {motionEnabled && <View pointerEvents="none" style={styles.lightClip}><Animated.View style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d4aa', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>}
-    {frameBreak ? <View pointerEvents="none" style={[styles.lowerHeroClip, { top: cardHeight * .75 }]}>{renderHero(-7, -cardHeight * .75 - 7)}</View> : <View pointerEvents="none" style={styles.artWindow}>{renderHero(0, 0, width - 2, cardHeight - 2)}</View>}
-    <CardFrame onLoad={onLoad} onError={onError} glowStyle={frameGlowStyle} />
+    <FrameInterior>
+        <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} /></Animated.View></View>
+        <View pointerEvents="none" style={styles.artWindow}><Animated.View style={[styles.overlay, frontStyle]}><Image source={card.foreground} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('foreground')} onError={onError} /><View style={[StyleSheet.absoluteFill, { opacity: .8 }]}><Image source={card.effects} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('effects')} onError={onError} /></View></Animated.View></View>
+        {motionEnabled && <View pointerEvents="none" style={styles.lightClip}><Animated.View style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d4aa', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>}
+        {frameBreak ? <View pointerEvents="none" style={[styles.lowerHeroClip, { top: cardHeight * .75 }]}>{renderHero(-7, -cardHeight * .75 - 7)}</View> : <View pointerEvents="none" style={styles.artWindow}>{renderHero(8, cardHeight * .075, width - 26, cardHeight * .89)}</View>}
+    </FrameInterior>
+    <CardFrame onLoad={onLoad} onError={onError} animated={motionEnabled} shineStyle={shineStyle} />
     {frameBreak && <View pointerEvents="none" style={[styles.heroClip, { bottom: cardHeight * .25 }]}>{renderHero(53, 53)}</View>}
     <CardDetails card={card} titleStyle={titleStyle} titleShineStyle={titleShineStyle} insideFrame={!frameBreak} animated={motionEnabled} onLoad={onLoad} onError={onError} />
-    <EvolutionBadge level={level} animated={motionEnabled} glowStyle={badgeGlowStyle} />
+    <EvolutionBadge level={level} animated={motionEnabled} glowStyle={badgeGlowStyle} width={width} />
     </Animated.View>
     <Animated.View pointerEvents="none" style={[styles.face, styles.backFace, backVisibility]}>
       <Image source={require('../../assets/cards/shared/back-sherlock.png')} style={styles.image} resizeMode="cover" onLoad={() => onLoad('back')} onError={onError} />
@@ -111,14 +112,12 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
 }
 const styles = StyleSheet.create({
   inspector: { alignItems: 'center' },
-  cardBody: { shadowColor: '#000', shadowOpacity: .7, shadowRadius: 16, shadowOffset: { width: 0, height: 9 }, elevation: 8 },
-  cardCore: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 28, backgroundColor: '#30251b', borderWidth: 1, borderColor: '#c99b4d' },
   face: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 },
   backFace: { transform: [{ rotateY: '180deg' }], borderRadius: 20, overflow: 'hidden', backgroundColor: '#101b25' },
   backRim: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 20, borderWidth: 2, borderColor: '#d5b677' },
   turnButton: { paddingVertical: 10, paddingHorizontal: 20, marginTop: 7 },
   turnText: { color: '#d6c39e', fontSize: 10, fontWeight: '700', letterSpacing: 1.8 },
-  artWindow: { position: 'absolute', top: 1, right: 1, bottom: 1, left: 1, borderRadius: 27, overflow: 'hidden' },
+  artWindow: { position: 'absolute', top: 5, right: 5, bottom: 5, left: 5, overflow: 'hidden' },
   image: { width: '100%', height: '100%' },
   scarf: { position: 'absolute', width: '100%', height: '100%' },
   heroClip: { position: 'absolute', left: -60, right: -60, top: -60, overflow: 'hidden' },
