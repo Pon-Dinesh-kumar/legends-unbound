@@ -12,6 +12,15 @@ import { Card } from './src/types/card';
 import { SharedValue } from 'react-native-reanimated';
 import { Evolution, evolutions, evolutionPolicy } from './src/data/evolutions';
 
+// Wait for the actual mounted layers, not a fixed total that can be satisfied by
+// an unrelated or duplicated load callback.
+const baseLayers = ['background', 'foreground', 'effects', 'character', 'title', 'frame', 'back'];
+const extraLayers: Record<string, string[]> = {
+  sherlock: ['scarf-0', 'scarf-1', 'scarf-2'],
+  dracula: ['cape-0', 'cape-1', 'cape-2'],
+};
+const requiredLayers = cards.flatMap(card => [...baseLayers, ...(extraLayers[card.id] ?? [])].map(layer => `${card.id}:${layer}`));
+
 function CardSlot({ card, width, tiltX, tiltY, selected, level, onLoad, onError }: { card: Card; width: number; tiltX: SharedValue<number>; tiltY: SharedValue<number>; selected: boolean; level: Evolution; onLoad: (layer: string) => void; onError: () => void }) {
   const opacity = useSharedValue(selected ? 1 : 0);
   useEffect(() => { opacity.value = withTiming(selected ? 1 : 0, { duration: 200 }); }, [opacity, selected]);
@@ -31,7 +40,7 @@ function Showcase({ onLoaded, onError }: { onLoaded: () => void; onError: () => 
   const cardWidth = Math.min(width * .72, Math.max(160, (height - 430) / 1.5), 350);
   const markLoaded = (cardId: string, layer: string) => {
     loadedLayers.current.add(`${cardId}:${layer}`);
-    if (!reportedReady.current && loadedLayers.current.size === cards.length * 7 + 6) {
+    if (!reportedReady.current && requiredLayers.every(key => loadedLayers.current.has(key))) {
       reportedReady.current = true;
       onLoaded();
     }

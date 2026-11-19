@@ -1,0 +1,73 @@
+# Card generation pipeline: name to validated card
+
+This is the required production workflow when a request supplies only a character name. Read [the locked art direction](../ART_DIRECTION.md) and [asset contract](CARD_ASSET_GUIDELINES.md) first. These instructions describe the workflow to carry out, not an assertion that this repository already has an automated generator, generic manifest renderer, validator, or device farm. Those pieces are future work; until then perform the steps explicitly, document evidence, and be candid about anything not verified.
+
+## Non-negotiable gates
+
+- **Plan before generating anything.** Create the complete card brief, layer/occlusion map, evolution map, exactly three distinct animation plans, asset list, integration plan, and test plan before the first image-generation call. Resolve source identity and any blocking ambiguity; make routine choices without interrupting the user. Record sources, decisions and assumptions.
+- Every complete card requires **exactly three independently authored, observable card-specific animations**, planned together. Clothing, hair, props, a specific effect or environmental detail can qualify. Shared frame/title effects, parallax, global image drifting and an opacity-only flash do not qualify. All three have the same registered rest pose in every evolution; only the active Unbound front animates.
+- Never trade quality for track count. Reject and repair seams, double images, ghosts, cuts, holes, detached anchors, wrong depth, pops, flicker, unconvincing rigid scaling and invisible motion. An unfinished card must be marked incomplete, not declared done. The rejected [Dracula cuff experiment](DRACULA_ANIMATION_REDESIGN.md#first-cuff-prototype-rejected) is an example.
+- Use the same approved character, pose, costume, environment, name and frame art for all levels. Origin stays inside the frame; Awakened unlocks top/side character frame-break; Unbound adds the same frame-break, parallax and the three animations. Bottom quarter of the character remains behind the border. Environments never break the frame. The rest placement of every moving piece follows the character or its intended parent, not screen coordinates.
+- Four rarities are planned; Legendary is rarest and uses the shared gold frame. **Only the border defines rarity.** The other three rarities are undecided. Never invent per-character borders or new evolution artwork. Stat shields, frame and evolution diamonds follow the [asset contract](CARD_ASSET_GUIDELINES.md#legendary-border-rarity-and-effects).
+
+## Required workflow
+
+### 1. Resolve the name and prepare the brief
+
+Identify the original comic, cartoon, book or other source and the intended character, distinguishing similarly named characters. Research the source when needed and record links and facts separately from creative interpretation. Base the name and identity on the original work; do not invent a random themed identity, copy an existing logo or use an actor likeness. Ask only if a material ambiguity cannot be resolved from context.
+
+Record a stable card ID, source inspiration, recognizable name, proposed rarity and cost/power (mark gameplay values as proposals unless supplied), personality, pose, costume, signature object, setting, palette, light direction, composition and emotional focal point. Use the collection's locked painterly 2.5D animated-feature style, not a new per-card style. Plan the phone-size silhouette, clear face and hand, title and stat clearance, and a 2:3 composition that works inside Origin and as an Awakened/Unbound top-and-side frame break.
+
+### 2. Plan all three animations before generating assets
+
+For each of the three distinct pieces, write: visual reason tied to this character; exact attachment and parent; intended depth and occlusion; static rest shape shared by all levels; moving region versus fixed face/body; motion path and loop timing; source-size anchor and overflow limits; required underpainting, foreground cover and masks; choice of registered authored frames or a proven deformable rig; mobile visibility; and interaction with the other two loops. Plan natural motion with no synchronized mechanical pulsing. Declare the fallback if separation or registration cannot be achieved: **revise the plan or leave the card incomplete**, not a fake effect or a badly cut sprite.
+
+Make an asset list and layer order for opaque environment, separated character base, each of the three resting pieces and its finished underpainting, any foreground occluders, authored frames/rig, foreground/effects and transparent name art. Record exact canvas, offsets, masks and attachment coordinates. Plan the shared border, stat values, evolution marker, shared back, readiness/error handling, reduced motion, and web/iOS/Android checks before generating.
+
+### 3. Generate and inspect the base composition
+
+Generate a coherent character/setting direction using the locked prompt and the brief. Match the existing cards' material, shape language and lighting. Preserve source prompts, model/tool, generation references and selected version. Reject output with identity drift, cut-off face/hands, illegible silhouette, baked borders, logos, stats, titles, text or watermarks. Confirm the composition can support all three preplanned moving pieces before generating the final layer set.
+
+### 4. Produce registered layers and underpainting
+
+Produce one consistent 1024 × 1536 source-coordinate composition: opaque background and transparent character, foreground, effects and title layers. Isolate each preplanned moving piece at its exact rest location and paint a finished, plausible base beneath it. Add the necessary foreground occlusion (for example, a hand over a cuff). Keep original attachment, lighting, palette and edges. Assemble each rest pose over its base and compare at full size and 200–400% zoom. Reject seams, halos, duplicate contours, missing paint, color shifts and any alteration to other body parts. Do not begin loop generation until all three rest composites pass.
+
+### 5. Author and inspect three real loops
+
+For each piece, create registered in-between drawings or a properly weighted deformable rig with fixed anchors and finished rest/underpaint. Animate the intended shape, not a whole image or unrelated AI poses cross-faded together. Keep loops continuous in both position and velocity. Scrub all poses and the loop boundary frame by frame on a contrasting backdrop and the assembled card; review in real time at target size. Verify attachment, hand/face occlusion, readable motion, absence of cuts, ghosting, jitter, pops and clipping. Tune the three motions together; do not count a failed or imperceptible piece.
+
+### 6. Assemble all levels through shared layers
+
+Register the art using the current catalog and shared compositor until the planned generic package/manifest exists. Mount character-attached details in the same source-coordinate transform as the character, including the Origin, upper frame-break and lower clipped paths. Keep environment and effects clipped, bottom border clear, character frame-break above the frame, shields and numbers legible, and title size/overflow consistent with level. Keep three rest pieces present across every level. Do not bake UI into art or create separate evolutionary illustrations.
+
+### 7. Preload and implement lifecycle
+
+List all actually required background, character, base, rest, frames/rig, occluders, effects, title, frame and back assets. Preload and decode or warm them as supported by each platform before revealing the card. Readiness must track distinct required layers, not a guessed count; support load failure and retry. Reuse cached assets and stop unused tracks on card switch, back face, backgrounding, unmount and reduced motion. Avoid excessive simultaneous images, GPU overdraw and oversized textures; measure rather than guessing device budgets.
+
+### 8. Verify visually and functionally
+
+Inspect Origin, Awakened and Unbound at desktop and narrow phone card sizes, including all three animation loops, every loop boundary, all clipping edges and level transitions. Confirm the same rest placement, frame break, lower border, gems, names and stats; test drag, sensor tilt and parallax, flip/back, switching cards while moving, startup/loading, retry, offline bundled assets and reduced motion. Check that frame glow does not touch stat shields or shimmer across the character. Record screenshots plus moving capture; a still screenshot alone cannot establish animation quality.
+
+### 9. Validate builds and physical devices
+
+Run relevant type checks, automated behavior tests and web/Android builds. Install a standalone APK on a representative real Android phone, check gyroscope/accelerometer tilt, touch fallback, background/resume recentering, asset loading, responsiveness, thermal behavior and frame pacing. Check iOS on a representative device when available. Record device models, OS versions, results and measurements. A web preview, Android bundle or emulator does not prove physical sensor behavior or performance; report untested devices honestly.
+
+### 10. Final audit and handoff
+
+Verify the brief, sources, layer manifest, three-track plan, source artwork, all three completed loops, shared rarity frame, evolution states, preload/error behavior, visual evidence and test results. Record unresolved failures and mark the card **incomplete** if any mandatory gate is unmet. Deliver asset paths, provenance, limitations and reproducible build/test instructions. Do not claim that a future pipeline is already automated or that a check ran when it did not.
+
+## Card brief template
+
+```text
+Character / stable ID / source links / identity assumptions:
+Rarity (existing supported frame) / proposed cost and power:
+Pose / silhouette / clothing / signature prop / expression:
+Setting / palette / light direction / style references:
+Frame-break silhouette / Origin fit / lower-quarter occlusion:
+Animation 1: piece, parent, anchor, depth, rest, underpaint, loop, visibility:
+Animation 2: piece, parent, anchor, depth, rest, underpaint, loop, visibility:
+Animation 3: piece, parent, anchor, depth, rest, underpaint, loop, visibility:
+Complete layers / asset sizes / generation prompts / source and license notes:
+Runtime and preload integration / failure and reduced-motion behavior:
+Web, iOS, Android, visual and performance verification plan:
+```

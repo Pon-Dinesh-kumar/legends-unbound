@@ -10,6 +10,12 @@ Select **Origin**, **Awakened**, or **Unbound** above the legend picker. All lev
 
 The artwork is composited from separate background, character, foreground, and effects PNGs. A shared transparent frame and image wordmarks are combined with native stat gems. See [ART_DIRECTION.md](ART_DIRECTION.md) for the locked collection style. Device motion and performance should be verified on actual iOS and Android hardware.
 
-The asset contract, evolution rules, animation requirements, and future pipeline plan are in [Card asset generation and assembly](docs/CARD_ASSET_GUIDELINES.md). The level selector is implemented; a generic manifest-driven pipeline remains planned.
+The asset contract, evolution rules and animation requirements are in [Card asset generation and assembly](docs/CARD_ASSET_GUIDELINES.md). For a future name-only card request, follow the complete [card generation pipeline](docs/CARD_GENERATION_PIPELINE.md): planning all three animations and their quality gates comes before any asset generation. The level selector is implemented; a generic manifest-driven pipeline remains planned.
+
+## Android test APK
+
+With a compatible JDK and Android SDK installed, generate the native project with `npx expo prebuild --platform android --no-install`, then run `gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a` from the `android` directory (`./gradlew` on macOS/Linux). The APK is written under `android/app/build/outputs/apk/release/`. This ARM64 build targets modern Android phones; include `x86_64` in the architecture list when an emulator build is needed. The generated Expo project uses its debug signing configuration for this release build: it is a local test APK, not a Play Store signing setup. On Windows, a short physical build directory may be needed to avoid native CMake path-length limits.
+
+On a physical phone, check loading, all three evolutions, drag and sensor tilt, Unbound parallax, flip, app background/resume and reduced motion. Device motion calibrates to the phone's initial orientation and recalibrates when the app returns from the background; the accelerometer or touch is used when device motion is unavailable. A successful build or synthetic browser sensor check does not establish physical-device smoothness or performance.
 
 
