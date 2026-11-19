@@ -16,6 +16,21 @@ The asset contract, evolution rules and animation requirements are in [Card asse
 
 With a compatible JDK and Android SDK installed, generate the native project with `npx expo prebuild --platform android --no-install`, then run `./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a` from the `android` directory (`.\gradlew.bat` in Windows PowerShell). The APK is written under `android/app/build/outputs/apk/release/`. This ARM64 build targets modern Android phones; include `x86_64` in the architecture list when an emulator build is needed. The generated Expo project uses its debug signing configuration for this release build: it is a local test APK, not a Play Store signing setup. On Windows, a short physical build directory may be needed to avoid native CMake path-length limits.
 
+If Windows Ninja reports a path-length error even from a short project directory, use a unique short CMake staging directory and object-path limit in the **generated** `android/app/build.gradle` before building:
+
+```groovy
+android {
+    externalNativeBuild { cmake { buildStagingDirectory file('C:/LCX') } }
+    defaultConfig {
+        externalNativeBuild { cmake { arguments '-DCMAKE_OBJECT_PATH_MAX=240' } }
+        // Keep the other generated defaultConfig settings.
+    }
+    // Keep the other generated Android settings.
+}
+```
+
+Choose a staging directory that does not belong to another build. Native folders are generated and ignored by Git, so reapply this local workaround after a clean prebuild if needed.
+
 On a physical phone, check loading, all three evolutions, drag and sensor tilt, Unbound parallax, flip, app background/resume and reduced motion. Device motion calibrates to the phone's initial orientation and recalibrates when the app returns from the background; the accelerometer or touch is used when device motion is unavailable. A successful build or synthetic browser sensor check does not establish physical-device smoothness or performance.
 
 
