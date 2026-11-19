@@ -1,6 +1,6 @@
 # Card generation pipeline: name to validated card
 
-This is the required production workflow when a request supplies only a character name. Read [the locked art direction](../ART_DIRECTION.md) and [asset contract](CARD_ASSET_GUIDELINES.md) first. These instructions describe the workflow to carry out, not an assertion that this repository already has an automated generator, generic manifest renderer, validator, or device farm. Those pieces are future work; until then perform the steps explicitly, document evidence, and be candid about anything not verified.
+This is the required production workflow when a request supplies only a character name. Read [the locked art direction](../ART_DIRECTION.md), [asset contract](CARD_ASSET_GUIDELINES.md), and [animation techniques and implementation notes](CARD_ANIMATION_TECHNIQUES.md) first. These instructions describe the workflow to carry out, not an assertion that this repository already has an automated generator, generic manifest renderer, validator, or device farm. Those pieces are future work; until then perform the steps explicitly, document evidence, and be candid about anything not verified.
 
 ## Non-negotiable gates
 
