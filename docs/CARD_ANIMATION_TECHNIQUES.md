@@ -1,6 +1,6 @@
 # Card animation techniques and implementation notes
 
-This is a reference for choosing and planning animation techniques in the [name-to-card pipeline](CARD_GENERATION_PIPELINE.md). The [asset contract](CARD_ASSET_GUIDELINES.md) and [art direction](../ART_DIRECTION.md) remain authoritative. These notes describe the current prototype, not an automatic card generator or proof that a technique will work for every image.
+This is a reference for choosing and planning animation techniques in the [name-to-card pipeline](CARD_GENERATION_PIPELINE.md). For external references, the Agent 13 layer observations, and the proposed CAT-inspired editor/renderer, see [Marvel Snap CAT research](MARVEL_SNAP_CAT_RESEARCH.md). The [asset contract](CARD_ASSET_GUIDELINES.md) and [art direction](../ART_DIRECTION.md) remain authoritative. These notes describe the current prototype, not an automatic card generator or proof that a technique will work for every image.
 
 ## Plan before producing assets
 

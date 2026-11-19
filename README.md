@@ -10,7 +10,7 @@ Select **Origin**, **Awakened**, or **Unbound** above the legend picker. All lev
 
 The artwork is composited from separate background, character, foreground, and effects PNGs. A shared transparent frame and image wordmarks are combined with native stat gems. See [ART_DIRECTION.md](ART_DIRECTION.md) for the locked collection style. Device motion and performance should be verified on actual iOS and Android hardware.
 
-The asset contract, evolution rules and animation requirements are in [Card asset generation and assembly](docs/CARD_ASSET_GUIDELINES.md). For a future name-only card request, follow the complete [card generation pipeline](docs/CARD_GENERATION_PIPELINE.md): planning all three animations and their quality gates comes before any asset generation. The level selector is implemented; a generic manifest-driven pipeline remains planned.
+The asset contract, evolution rules and animation requirements are in [Card asset generation and assembly](docs/CARD_ASSET_GUIDELINES.md). [Marvel Snap CAT research and the proposed card pipeline](docs/MARVEL_SNAP_CAT_RESEARCH.md) collects verified sources, the Agent 13 layer observations and practical renderer/authoring experiments. For a future name-only card request, follow the complete [card generation pipeline](docs/CARD_GENERATION_PIPELINE.md): planning all three animations and their quality gates comes before any asset generation. The level selector is implemented; a generic manifest-driven pipeline remains planned.
 
 ## Android test APK
 

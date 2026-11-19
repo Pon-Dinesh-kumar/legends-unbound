@@ -1,6 +1,6 @@
 # Card generation pipeline: name to validated card
 
-This is the required production workflow when a request supplies only a character name. Read [the locked art direction](../ART_DIRECTION.md), [asset contract](CARD_ASSET_GUIDELINES.md), and [animation techniques and implementation notes](CARD_ANIMATION_TECHNIQUES.md) first. These instructions describe the workflow to carry out, not an assertion that this repository already has an automated generator, generic manifest renderer, validator, or device farm. Those pieces are future work; until then perform the steps explicitly, document evidence, and be candid about anything not verified.
+This is the required production workflow when a request supplies only a character name. Read [the locked art direction](../ART_DIRECTION.md), [asset contract](CARD_ASSET_GUIDELINES.md), [animation techniques and implementation notes](CARD_ANIMATION_TECHNIQUES.md), and [Marvel Snap CAT research and our proposed pipeline improvements](MARVEL_SNAP_CAT_RESEARCH.md) first. These instructions describe the workflow to carry out, not an assertion that this repository already has an automated generator, generic manifest renderer, validator, or device farm. Those pieces are future work; until then perform the steps explicitly, document evidence, and be candid about anything not verified.
 
 ## Non-negotiable gates
 
@@ -24,6 +24,14 @@ For each of the three distinct pieces, write: visual reason tied to this charact
 
 Make an asset list and layer order for opaque environment, separated character base, each of the three resting pieces and its finished underpainting, any foreground occluders, authored frames/rig, foreground/effects and transparent name art. Record exact canvas, offsets, masks and attachment coordinates. Plan the shared border, stat values, evolution marker, shared back, readiness/error handling, reduced motion, and web/iOS/Android checks before generating.
 
+### 2a. Plan variable layers and the renderer before generating
+
+Build a card-specific, ordered layer and occlusion map: identify which background planes, body parts, frame-breaking pieces, props, title parts and effect regions actually need independent depth or motion. Record source-coordinate canvas and image fit, parent/anchor, visible and hidden contours, finished underpainting, per-plane overscan, depth, clip, all-level rest appearance, and each of the three planned track links. Do not require a fixed image count: more layers only help when they preserve meaningful depth or motion without seams or unacceptable device cost.
+
+For each track, compare separated authored frames, an anchored/weighted rig, localized flowing imagery and mask/shader techniques against the current renderer and quality gates. Paint independent, registered height, motion, emission or occlusion maps only where the chosen technique needs them; these do not replace source artwork or hidden paint. Record mask color-space, range, alpha semantics and sampling. Packed RGBA maps, shader features, particles and an artist preview are proposed optimizations, not implemented tools or assumed Marvel Snap internals. Retain editable independent masks, and only pack after a measured, cross-platform validation.
+
+Add the intended package graph, complete required/preloaded assets and failure fallback to the brief. Validate layer/track IDs and references, three-track completeness, matte/alpha, dimensions, pixel registration, frame clipping and underpaint before building motion. Prototype the hardest occlusion or joint first and compare the resulting rest composite to the approved original. Require captured loop-boundary and actual-phone-size evidence, then device timing/memory checks; if a track looks wrong or is invisible, revise it or leave the card incomplete. The detailed [CAT-inspired package, preview and benchmark plan](MARVEL_SNAP_CAT_RESEARCH.md) is a design target, not a promise of an available tool.
+
 ### 3. Generate and inspect the base composition
 
 Generate a coherent character/setting direction using the locked prompt and the brief. Match the existing cards' material, shape language and lighting. Preserve source prompts, model/tool, generation references and selected version. Reject output with identity drift, cut-off face/hands, illegible silhouette, baked borders, logos, stats, titles, text or watermarks. Confirm the composition can support all three preplanned moving pieces before generating the final layer set.
@@ -34,7 +42,7 @@ Produce one consistent 1024 × 1536 source-coordinate composition: opaque backgr
 
 ### 5. Author and inspect three real loops
 
-For each piece, create registered in-between drawings or a properly weighted deformable rig with fixed anchors and finished rest/underpaint. Animate the intended shape, not a whole image or unrelated AI poses cross-faded together. Keep loops continuous in both position and velocity. Scrub all poses and the loop boundary frame by frame on a contrasting backdrop and the assembled card; review in real time at target size. Verify attachment, hand/face occlusion, readable motion, absence of cuts, ghosting, jitter, pops and clipping. Tune the three motions together; do not count a failed or imperceptible piece.
+For each piece, create registered in-between drawings, a properly weighted deformable rig, or another locally justified motion method with fixed anchors and finished rest/underpaint. For periodic flow, maintain complete moving coverage at all handoffs and inspect multiple loop boundaries, rather than accepting a mathematically continuous parameter alone. Animate the intended shape, not a whole image or unrelated AI poses cross-faded together. Keep loops continuous in both position and velocity. Scrub all poses and the loop boundary frame by frame on a contrasting backdrop and the assembled card; review in real time at target size. Verify attachment, hand/face occlusion, readable motion, absence of cuts, ghosting, jitter, pops and clipping. Tune the three motions together; do not count a failed or imperceptible piece.
 
 ### 6. Assemble all levels through shared layers
 
