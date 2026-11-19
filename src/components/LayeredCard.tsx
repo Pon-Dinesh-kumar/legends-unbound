@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -11,12 +11,14 @@ import { draculaCapeBase, draculaCapeFrames } from '../data/draculaCape';
 import { Evolution, evolutionPolicy } from '../data/evolutions';
 import { FrameInterior } from './FrameInterior';
 import { TarzanWaterfall } from './TarzanWaterfall';
+import { TarzanCharacter } from './TarzanCharacter';
 
 const limit = (n: number) => { 'worklet'; return Math.max(-1, Math.min(1, n)); };
 const twinkle = (phase: number, center: number) => { 'worklet'; const t = Math.max(0, 1 - Math.abs(phase - center) / .065); return t * t * (3 - 2 * t); };
 const ScarfMask = MaskedView as unknown as React.ComponentType<React.ComponentProps<typeof View> & { maskElement: React.ReactElement }>;
 export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad, onError }: { card: Card; width: number; tiltX: SharedValue<number>; tiltY: SharedValue<number>; selected: boolean; level: Evolution; onLoad: (layer: string) => void; onError: () => void }) {
   const [isBack, setIsBack] = useState(false);
+  const [appForeground, setAppForeground] = useState(AppState.currentState !== 'background' && AppState.currentState !== 'inactive');
   const reducedMotion = useReducedMotion();
   const { frameBreak } = evolutionPolicy[level];
   const motionEnabled = evolutionPolicy[level].motion && !reducedMotion;
@@ -24,7 +26,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   const tiltEnabled = !reducedMotion;
   const turn = useSharedValue(0);
   const dragX = useSharedValue(0), dragY = useSharedValue(0), shimmer = useSharedValue(0);
-  const scarfPhase = useSharedValue(0);
+  const scarfPhase = useSharedValue(0), tarzanClothPhase = useSharedValue(0);
   const breath = useSharedValue(0), sparklePhase = useSharedValue(0), gemPhase = useSharedValue(0), reveal = useSharedValue(0);
   useEffect(() => {
     if (selected && frameMotionEnabled && !isBack) {
@@ -54,6 +56,20 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     }
     return () => { cancelAnimation(scarfPhase); };
   }, [card.id, selected, isBack, motionEnabled, scarfPhase]);
+  useEffect(() => {
+    if (card.id !== 'tarzan') return;
+    const listener = AppState.addEventListener('change', state => setAppForeground(state === 'active'));
+    return () => listener.remove();
+  }, [card.id]);
+  useEffect(() => {
+    if (card.id === 'tarzan' && selected && !isBack && motionEnabled && appForeground) {
+      tarzanClothPhase.value = withRepeat(withTiming(Math.PI * 2, { duration: 6000, easing: Easing.linear }), -1, false);
+    } else {
+      cancelAnimation(tarzanClothPhase);
+      tarzanClothPhase.value = 0;
+    }
+    return () => { cancelAnimation(tarzanClothPhase); };
+  }, [card.id, selected, isBack, motionEnabled, appForeground, tarzanClothPhase]);
   useEffect(() => { dragX.value = 0; dragY.value = 0; }, [level, reducedMotion, dragX, dragY]);
   const pan = Gesture.Pan().enabled(tiltEnabled).onUpdate(e => {
     dragX.value = limit(e.translationX / (width * .20));
@@ -108,7 +124,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
       <Animated.View style={[StyleSheet.absoluteFill, scarfFrame1]}><Image source={draculaCapeFrames[1]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-1')} onError={onError} /></Animated.View>
       <Animated.View style={[StyleSheet.absoluteFill, scarfFrame2]}><Image source={draculaCapeFrames[2]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-2')} onError={onError} /></Animated.View>
     </Animated.View>}
-    <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.id === 'dracula' ? draculaCapeBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />
+    {card.id === 'tarzan' ? <TarzanCharacter source={card.character} phase={tarzanClothPhase} onLoad={() => onLoad('character')} onError={onError} /> : <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.id === 'dracula' ? draculaCapeBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />}
     {card.id === 'sherlock' && (Platform.OS === 'web' ? React.createElement('div', {
       'aria-hidden': true,
       style: { position: 'absolute', inset: 0, pointerEvents: 'none', maskImage: 'linear-gradient(to right, transparent 43%, black 51%)', WebkitMaskImage: 'linear-gradient(to right, transparent 43%, black 51%)' },
