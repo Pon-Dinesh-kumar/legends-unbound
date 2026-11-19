@@ -8,7 +8,8 @@ const cardImages = [
   ...cards.flatMap(card => [card.background, card.character, card.foreground, card.effects, card.titleImage]),
   sherlockScarfBase, ...sherlockScarfFrames,
   draculaCapeBase, ...draculaCapeFrames,
-  require('../../assets/cards/shared/frame-legendary-v5.png'),
+  require('../../assets/cards/shared/frame-legendary-v6.png'),
+  require('../../assets/cards/shared/evolution-gem-active-v1.png'),
   require('../../assets/cards/shared/back-sherlock.png'),
 ];
 

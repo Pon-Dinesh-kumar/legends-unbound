@@ -24,18 +24,21 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   const turn = useSharedValue(0);
   const dragX = useSharedValue(0), dragY = useSharedValue(0), shimmer = useSharedValue(0);
   const scarfPhase = useSharedValue(0);
-  const breath = useSharedValue(0), sparklePhase = useSharedValue(0), reveal = useSharedValue(0);
+  const breath = useSharedValue(0), sparklePhase = useSharedValue(0), gemPhase = useSharedValue(0), reveal = useSharedValue(0);
   useEffect(() => {
     if (selected && frameMotionEnabled && !isBack) {
       breath.value = withRepeat(withTiming(1, { duration: 3200, easing: Easing.inOut(Easing.sin) }), -1, true);
+      sparklePhase.value = 0;
       sparklePhase.value = withRepeat(withTiming(1, { duration: 11000, easing: Easing.linear }), -1, false);
+      gemPhase.value = 0;
+      gemPhase.value = withRepeat(withTiming(1, { duration: 7500, easing: Easing.linear }), -1, false);
       reveal.value = withSequence(withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 1600, easing: Easing.out(Easing.cubic) }));
     } else {
-      cancelAnimation(breath); cancelAnimation(sparklePhase); cancelAnimation(reveal);
-      breath.value = 0; sparklePhase.value = 0; reveal.value = 0;
+      cancelAnimation(breath); cancelAnimation(sparklePhase); cancelAnimation(gemPhase); cancelAnimation(reveal);
+      breath.value = 0; sparklePhase.value = 0; gemPhase.value = 0; reveal.value = 0;
     }
-    return () => { cancelAnimation(breath); cancelAnimation(sparklePhase); cancelAnimation(reveal); };
-  }, [selected, frameMotionEnabled, isBack, card.id, level, breath, sparklePhase, reveal]);
+    return () => { cancelAnimation(breath); cancelAnimation(sparklePhase); cancelAnimation(gemPhase); cancelAnimation(reveal); };
+  }, [selected, frameMotionEnabled, isBack, card.id, level, breath, sparklePhase, gemPhase, reveal]);
   useEffect(() => {
     if (selected && frameMotionEnabled) shimmer.value = withRepeat(withTiming(1, { duration: 5500, easing: Easing.inOut(Easing.sin) }), -1, true);
     else { cancelAnimation(shimmer); shimmer.value = 0; }
@@ -121,7 +124,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     <FrameStatCorners width={width} />
     {frameMotionEnabled && selected && !isBack && <FrameSparkles width={width} sparkleStyles={[sparkle1, sparkle2, sparkle3, sparkle4]} />}
     <CardDetails card={card} width={width} titleStyle={titleStyle} titleShineStyle={titleShineStyle} insideFrame={!frameBreak} animated={motionEnabled} onLoad={onLoad} onError={onError} />
-    <EvolutionBadge level={level} animated={frameMotionEnabled && selected && !isBack} glowStyle={badgeGlowStyle} width={width} />
+    <EvolutionBadge level={level} animated={frameMotionEnabled && selected && !isBack} glowStyle={badgeGlowStyle} gemPhase={gemPhase} width={width} onLoad={onLoad} onError={onError} />
     </Animated.View>
     <Animated.View pointerEvents="none" style={[styles.face, styles.backFace, backVisibility]}>
       <Image source={require('../../assets/cards/shared/back-sherlock.png')} style={styles.image} resizeMode="cover" onLoad={() => onLoad('back')} onError={onError} />

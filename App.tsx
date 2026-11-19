@@ -14,7 +14,7 @@ import { Evolution, evolutions, evolutionPolicy } from './src/data/evolutions';
 
 // Wait for the actual mounted layers, not a fixed total that can be satisfied by
 // an unrelated or duplicated load callback.
-const baseLayers = ['background', 'foreground', 'effects', 'character', 'title', 'frame', 'back'];
+const baseLayers = ['background', 'foreground', 'effects', 'character', 'title', 'frame', 'back', 'gem'];
 const extraLayers: Record<string, string[]> = {
   sherlock: ['scarf-0', 'scarf-1', 'scarf-2'],
   dracula: ['cape-0', 'cape-1', 'cape-2'],
