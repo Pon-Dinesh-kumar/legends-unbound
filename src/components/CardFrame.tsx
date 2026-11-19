@@ -14,20 +14,38 @@ const activeGemAsset = require('../../assets/cards/shared/evolution-gem-active-v
 
 type FrameMotionStyle = StyleProp<AnimatedStyle<ViewStyle>>;
 
-function FrameShine({ shineStyle, pulseStyle, edgeSweepStyle, topSweepStyle }: { shineStyle: FrameMotionStyle; pulseStyle: FrameMotionStyle; edgeSweepStyle: FrameMotionStyle; topSweepStyle: FrameMotionStyle }) {
+// Feather the boundaries of each rail separately before applying the frame mask.
+// This prevents the rectangular sweep containers from drawing a hard line on corners.
+function SweepFeather({ children, direction }: { children: React.ReactNode; direction: 'inward-left' | 'inward-right' | 'inward-top' | 'inward-bottom' | 'ends' }) {
+  const isEnds = direction === 'ends';
+  const horizontal = isEnds || direction === 'inward-left' || direction === 'inward-right';
+  const reverse = direction === 'inward-right' || direction === 'inward-bottom';
+  const colors = isEnds ? ['transparent', '#fff', '#fff', 'transparent'] as const : reverse ? ['transparent', '#fff', '#fff'] as const : ['#fff', '#fff', 'transparent'] as const;
+  const locations = isEnds ? [0, .16, .84, 1] as const : reverse ? [0, .55, 1] as const : [0, .45, 1] as const;
+  const start = { x: 0, y: 0 }, end = horizontal ? { x: 1, y: 0 } : { x: 0, y: 1 };
+  if (Platform.OS === 'web') {
+    const stops = colors.map((color, i) => `${color} ${locations[i] * 100}%`).join(', ');
+    const gradient = `linear-gradient(to ${horizontal ? 'right' : 'bottom'}, ${stops})`;
+    return React.createElement('div', { style: { position: 'absolute', inset: 0, pointerEvents: 'none', maskImage: gradient, WebkitMaskImage: gradient } }, children);
+  }
+  return <TitleMask style={StyleSheet.absoluteFill} maskElement={<LinearGradient colors={colors} locations={locations} start={start} end={end} style={StyleSheet.absoluteFill} />}>{children}</TitleMask>;
+}
+
+function FrameShine({ edgeSweepStyle, topSweepStyle }: { edgeSweepStyle: FrameMotionStyle; topSweepStyle: FrameMotionStyle }) {
   const frameUri = Platform.OS === 'web' ? Asset.fromModule(frameAsset).uri : undefined;
-  const shine = <Animated.View style={[styles.frameShine, shineStyle]}><LinearGradient colors={['transparent', '#fff1b3b0', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View>;
-  const effects = <><Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: '#ffe09a' }, pulseStyle]} />{shine}<Animated.View style={[styles.edgeSweep, edgeSweepStyle]}><LinearGradient colors={['transparent', '#ffb72cbb', '#fffde8ff', '#ffb72cbb', 'transparent']} locations={[0, .3, .5, .7, 1]} style={StyleSheet.absoluteFill} /></Animated.View><View style={styles.topSweepClip}><Animated.View style={[styles.topSweep, topSweepStyle]}><LinearGradient colors={['transparent', '#ffc64baa', '#fffef2ff', '#ffc64baa', 'transparent']} locations={[0, .3, .5, .7, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View></>;
+  const sideSweep = <Animated.View style={[styles.edgeSweep, edgeSweepStyle]}><LinearGradient colors={['transparent', '#ffb72cbb', '#fffde8ff', '#ffb72cbb', 'transparent']} locations={[0, .3, .5, .7, 1]} style={StyleSheet.absoluteFill} /></Animated.View>;
+  const railSweep = <Animated.View style={[styles.topSweep, topSweepStyle]}><LinearGradient colors={['transparent', '#ffc64baa', '#fffef2ff', '#ffc64baa', 'transparent']} locations={[0, .3, .5, .7, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View>;
+  const effects = <><View style={[styles.edgeSweepClip, styles.leftSweepClip]}><SweepFeather direction="inward-left">{sideSweep}</SweepFeather></View><View style={[styles.edgeSweepClip, styles.rightSweepClip]}><SweepFeather direction="inward-right">{sideSweep}</SweepFeather></View><View style={styles.topSweepClip}><SweepFeather direction="ends"><SweepFeather direction="inward-top">{railSweep}</SweepFeather></SweepFeather></View><View style={styles.bottomSweepClip}><SweepFeather direction="ends"><SweepFeather direction="inward-bottom">{railSweep}</SweepFeather></SweepFeather></View></>;
   return Platform.OS === 'web' ? React.createElement('div', {
     'aria-hidden': true,
     style: { position: 'absolute', inset: 0, pointerEvents: 'none', maskImage: `url("${frameUri}")`, maskSize: '100% 100%', maskRepeat: 'no-repeat', WebkitMaskImage: `url("${frameUri}")`, WebkitMaskSize: '100% 100%', WebkitMaskRepeat: 'no-repeat' },
   }, effects) : <TitleMask style={StyleSheet.absoluteFill} maskElement={<Image source={frameAsset} resizeMode="stretch" style={styles.nameImage} />}>{effects}</TitleMask>;
 }
 
-export function CardFrame({ onLoad, onError, animated, shineStyle, pulseStyle, edgeSweepStyle, topSweepStyle }: { onLoad: (layer: string) => void; onError: () => void; animated: boolean; shineStyle: FrameMotionStyle; pulseStyle: FrameMotionStyle; edgeSweepStyle: FrameMotionStyle; topSweepStyle: FrameMotionStyle }) {
+export function CardFrame({ onLoad, onError, animated, edgeSweepStyle, topSweepStyle }: { onLoad: (layer: string) => void; onError: () => void; animated: boolean; edgeSweepStyle: FrameMotionStyle; topSweepStyle: FrameMotionStyle }) {
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
     <Image source={frameAsset} resizeMode="stretch" style={styles.frameImage} onLoad={() => onLoad('frame')} onError={onError} />
-    {animated && <View style={styles.frameImage}><FrameShine shineStyle={shineStyle} pulseStyle={pulseStyle} edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} /></View>}
+    {animated && <View style={styles.frameImage}><FrameShine edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} /></View>}
   </View>;
 }
 
@@ -47,7 +65,7 @@ export function FrameStatCorners({ width }: { width: number }) {
 
 // Small vector glints sit on the metal itself, without rectangular shadow layers.
 export function FrameSparkles({ width, sparkleStyles }: { width: number; sparkleStyles: StyleProp<AnimatedStyle<ViewStyle>>[] }) {
-  const size = Math.max(12, Math.min(21, width * .06));
+  const size = Math.max(16, Math.min(30, width * .085));
   const points = [[.32, .035], [.68, .035], [.075, .925], [.925, .925]];
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
     {points.map(([x, y], index) => <Animated.View key={index} style={[{ position: 'absolute', left: width * x - size / 2, top: width * 1.5 * y - size / 2, width: size, height: size }, sparkleStyles[index]]}>
@@ -135,9 +153,9 @@ export function EvolutionBadge({ level, animated, glowStyle, gemPhase, width, on
   </View>;
 }
 
-export function CardDetails({ card, width, titleStyle, titleShineStyle, insideFrame, animated, onLoad, onError }: { card: Card; width: number; titleStyle: StyleProp<AnimatedStyle<ViewStyle>>; titleShineStyle: StyleProp<AnimatedStyle<ViewStyle>>; insideFrame: boolean; animated: boolean; onLoad: (layer: string) => void; onError: () => void }) {
+export function CardDetails({ card, width, titleStyle, titleShineStyle, interactiveTitleShineStyle, insideFrame, animated, onLoad, onError }: { card: Card; width: number; titleStyle: StyleProp<AnimatedStyle<ViewStyle>>; titleShineStyle: StyleProp<AnimatedStyle<ViewStyle>>; interactiveTitleShineStyle: StyleProp<AnimatedStyle<ViewStyle>>; insideFrame: boolean; animated: boolean; onLoad: (layer: string) => void; onError: () => void }) {
   const titleUri = Platform.OS === 'web' ? Asset.fromModule(card.titleImage).uri : undefined;
-  const shine = <Animated.View style={[styles.titleShine, titleShineStyle]}><LinearGradient colors={['transparent', '#fff5d6bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View>;
+  const shine = <><Animated.View testID="title-idle-shine" style={[styles.titleShine, titleShineStyle]}><LinearGradient colors={['transparent', '#fff5d6bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View><Animated.View testID="title-tilt-shine" style={[styles.titleShine, interactiveTitleShineStyle]}><LinearGradient colors={['transparent', '#fff8e0dd', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></>;
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
     <Animated.View style={[styles.nameArt, insideFrame && styles.nameArtInside, titleStyle]}>
       <Image source={card.titleImage} resizeMode="contain" style={styles.nameImage} onLoad={() => onLoad('title')} onError={onError} />
@@ -158,10 +176,13 @@ export function CardDetails({ card, width, titleStyle, titleShineStyle, insideFr
 const styles = StyleSheet.create({
   frameImage: { position: 'absolute', top: '-1%', left: '-1%', width: '102%', height: '102%' },
   cornerClip: { position: 'absolute', top: 0, overflow: 'hidden' },
-  frameShine: { position: 'absolute', width: '35%', height: '160%', top: '-30%' },
-  edgeSweep: { position: 'absolute', left: 0, width: '100%', height: '25%', top: 0 },
+  edgeSweepClip: { position: 'absolute', top: 0, bottom: 0, width: '14%', overflow: 'hidden' },
+  leftSweepClip: { left: 0 },
+  rightSweepClip: { right: 0 },
+  edgeSweep: { position: 'absolute', left: 0, width: '100%', height: '34%', top: 0 },
   topSweepClip: { position: 'absolute', top: 0, left: '27%', width: '46%', height: '13%', overflow: 'hidden' },
-  topSweep: { position: 'absolute', top: 0, left: 0, width: '65%', height: '100%' },
+  bottomSweepClip: { position: 'absolute', bottom: 0, left: 0, width: '100%', height: '13%', overflow: 'hidden' },
+  topSweep: { position: 'absolute', top: 0, left: 0, width: '80%', height: '100%' },
   diamondMount: { position: 'absolute' },
   gemSweep: { position: 'absolute', top: '-30%', left: 0, width: '32%', height: '160%' },
   gemGlint: { position: 'absolute', top: '17%', left: '33%', width: '34%', height: '34%' },

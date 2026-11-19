@@ -55,8 +55,8 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   }, [card.id, selected, isBack, motionEnabled, scarfPhase]);
   useEffect(() => { dragX.value = 0; dragY.value = 0; }, [level, reducedMotion, dragX, dragY]);
   const pan = Gesture.Pan().enabled(tiltEnabled).onUpdate(e => {
-    dragX.value = limit(e.translationX / (width * .35));
-    dragY.value = limit(e.translationY / (width * .5));
+    dragX.value = limit(e.translationX / (width * .20));
+    dragY.value = limit(e.translationY / (width * .28));
   }).onFinalize(() => {
     dragX.value = withSpring(0, { damping: 20, stiffness: 140 });
     dragY.value = withSpring(0, { damping: 20, stiffness: 140 });
@@ -66,33 +66,36 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     turn.value = motionEnabled ? withSpring(target, { damping: 20, stiffness: 115 }) : target;
     setIsBack(!isBack);
   };
-  const cardTiltHorizontal = useDerivedValue(() => tiltEnabled ? limit(tiltX.value * .45 + dragX.value * .7) : 0);
+  const cardTiltHorizontal = useDerivedValue(() => tiltEnabled ? limit(tiltX.value * .75 + dragX.value * .8) : 0);
   const tiltHorizontal = useDerivedValue(() => motionEnabled ? cardTiltHorizontal.value : 0);
-  const tiltVertical = useDerivedValue(() => motionEnabled ? limit(tiltY.value * .45 + dragY.value * .7) : 0);
-  const rotationX = useDerivedValue(() => -tiltVertical.value * 5);
-  const rotationY = useDerivedValue(() => turn.value + cardTiltHorizontal.value * (motionEnabled ? 5 : 4));
+  const tiltVertical = useDerivedValue(() => motionEnabled ? limit(tiltY.value * .75 + dragY.value * .8) : 0);
+  const rotationX = useDerivedValue(() => -tiltVertical.value * 15);
+  const rotationY = useDerivedValue(() => turn.value + cardTiltHorizontal.value * (motionEnabled ? 17 : 15));
   const cardStyle = useAnimatedStyle(() => ({ transform: [{ perspective: 2400 }, { rotateX: `${rotationX.value}deg` }, { rotateY: `${rotationY.value}deg` }] }));
   const frontVisibility = useAnimatedStyle(() => ({ opacity: Math.cos(rotationY.value * Math.PI / 180) >= 0 ? 1 : 0 }));
   const backVisibility = useAnimatedStyle(() => ({ opacity: Math.cos(rotationY.value * Math.PI / 180) < 0 ? 1 : 0 }));
-  const backStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1.08 }, { translateX: -tiltHorizontal.value * 5 }, { translateY: -tiltVertical.value * 4 }] }));
-  const heroStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 7 }, { translateY: tiltVertical.value * 6 }, { scale: frameBreak ? 1.08 : 1 }] }));
-  const frontStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 12 }, { translateY: tiltVertical.value * 10 }, { scale: 1.08 }] }));
-  const titleStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 3 }, { translateY: tiltVertical.value * 2 }] }));
+  const backStyle = useAnimatedStyle(() => ({ transform: [{ scale: motionEnabled ? 1.16 : 1.08 }, { translateX: -tiltHorizontal.value * 12 }, { translateY: -tiltVertical.value * 10 }] }));
+  const heroStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 16 }, { translateY: tiltVertical.value * 13 }, { scale: frameBreak ? 1.08 : 1 }] }));
+  const frontStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 26 }, { translateY: tiltVertical.value * 22 }, { scale: motionEnabled ? 1.16 : 1.08 }] }));
+  const titleStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 7 }, { translateY: tiltVertical.value * 5 }] }));
   const cardHeight = width * 1.5;
   const scarfFrame1 = useAnimatedStyle(() => ({ opacity: Math.min(1, scarfPhase.value) }));
   const scarfFrame2 = useAnimatedStyle(() => ({ opacity: Math.max(0, scarfPhase.value - 1) }));
   const scarfWave = useAnimatedStyle(() => ({ transform: [{ translateY: -cardHeight * .035 }, { rotate: `${Math.sin(scarfPhase.value * Math.PI) * 1.5}deg` }] }));
   const capeWave = useAnimatedStyle(() => ({ transform: [{ rotate: `${Math.sin(scarfPhase.value * Math.PI) * 1.2}deg` }] }));
-  const framePulseStyle = useAnimatedStyle(() => ({ opacity: .09 + breath.value * .17 + reveal.value * .14 }));
-  const edgeSweepStyle = useAnimatedStyle(() => ({ opacity: .9 + reveal.value * .1, transform: [{ translateY: (shimmer.value * 1.32 - .25) * cardHeight }] }));
-  const topSweepStyle = useAnimatedStyle(() => ({ opacity: .9 + reveal.value * .1, transform: [{ translateX: (shimmer.value * .76 - .3) * width }] }));
+  const edgeSweepStyle = useAnimatedStyle(() => ({ opacity: .68 + breath.value * .22 + reveal.value * .1, transform: [{ translateY: (shimmer.value * 1.42 - .34) * cardHeight }] }));
+  const topSweepStyle = useAnimatedStyle(() => ({ opacity: .68 + breath.value * .22 + reveal.value * .1, transform: [{ translateX: (shimmer.value * .92 - .4) * width }] }));
   const badgeGlowStyle = useAnimatedStyle(() => ({ opacity: .12 + breath.value * .6 + reveal.value * .25 }));
-  const sparkle1 = useAnimatedStyle(() => { const a = Math.max(twinkle(sparklePhase.value, .14) * .75, reveal.value * .85); return { opacity: a, transform: [{ scale: .55 + a * .45 }] }; });
-  const sparkle2 = useAnimatedStyle(() => { const a = Math.max(twinkle(sparklePhase.value, .37) * .75, reveal.value * .7); return { opacity: a, transform: [{ scale: .55 + a * .45 }] }; });
-  const sparkle3 = useAnimatedStyle(() => { const a = Math.max(twinkle(sparklePhase.value, .63) * .75, reveal.value * .7); return { opacity: a, transform: [{ scale: .55 + a * .45 }] }; });
-  const sparkle4 = useAnimatedStyle(() => { const a = Math.max(twinkle(sparklePhase.value, .85) * .75, reveal.value * .85); return { opacity: a, transform: [{ scale: .55 + a * .45 }] }; });
+  const sparkle1 = useAnimatedStyle(() => { const a = Math.max(twinkle(sparklePhase.value, .14), reveal.value * .95); return { opacity: a, transform: [{ scale: .55 + a * .65 }] }; });
+  const sparkle2 = useAnimatedStyle(() => { const a = Math.max(twinkle(sparklePhase.value, .37), reveal.value * .85); return { opacity: a, transform: [{ scale: .55 + a * .65 }] }; });
+  const sparkle3 = useAnimatedStyle(() => { const a = Math.max(twinkle(sparklePhase.value, .63), reveal.value * .85); return { opacity: a, transform: [{ scale: .55 + a * .65 }] }; });
+  const sparkle4 = useAnimatedStyle(() => { const a = Math.max(twinkle(sparklePhase.value, .85), reveal.value * .95); return { opacity: a, transform: [{ scale: .55 + a * .65 }] }; });
   const titleShineStyle = useAnimatedStyle(() => ({ transform: [{ translateX: (shimmer.value * 1.6 - .46 + tiltHorizontal.value * .2) * width }, { rotate: '25deg' }] }));
   const shineStyle = useAnimatedStyle(() => ({ opacity: .18 + Math.abs(tiltHorizontal.value) * .13 + reveal.value * .15, transform: [{ translateX: (shimmer.value * 1.6 - .55 + tiltHorizontal.value * .2) * width }, { rotate: '25deg' }] }));
+  // Keep the idle sweep independent so a held tilt creates a stable, responsive highlight.
+  const interactiveStrength = useDerivedValue(() => Math.min(1, Math.sqrt(tiltHorizontal.value ** 2 + tiltVertical.value ** 2) * 1.25));
+  const interactiveShineStyle = useAnimatedStyle(() => ({ opacity: interactiveStrength.value * .42, transform: [{ translateX: (.32 + tiltHorizontal.value * .38 + tiltVertical.value * .08) * width }, { translateY: tiltVertical.value * cardHeight * .12 }, { rotate: `${25 + tiltVertical.value * 8}deg` }] }));
+  const interactiveTitleShineStyle = useAnimatedStyle(() => ({ opacity: interactiveStrength.value * .8, transform: [{ translateX: (.36 + tiltHorizontal.value * .42 + tiltVertical.value * .1) * width }, { rotate: `${25 + tiltVertical.value * 8}deg` }] }));
   const scarfLayers = <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: [(width + 14) * .5, (cardHeight + 7) * .38, 0] }, scarfWave]}>
     <Image source={sherlockScarfFrames[0]} resizeMode="contain" style={styles.scarf} onLoad={() => onLoad('scarf-0')} onError={onError} />
     <Animated.View style={[StyleSheet.absoluteFill, scarfFrame1]}><Image source={sherlockScarfFrames[1]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('scarf-1')} onError={onError} /></Animated.View>
@@ -116,14 +119,14 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     <FrameInterior>
         <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} /></Animated.View></View>
         <View pointerEvents="none" style={styles.artWindow}><Animated.View style={[styles.overlay, frontStyle]}><Image source={card.foreground} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('foreground')} onError={onError} /><View style={[StyleSheet.absoluteFill, { opacity: .8 }]}><Image source={card.effects} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('effects')} onError={onError} /></View></Animated.View></View>
-        {motionEnabled && <View pointerEvents="none" style={styles.lightClip}><Animated.View style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d4aa', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>}
+        {motionEnabled && <View pointerEvents="none" style={styles.lightClip}><Animated.View testID="background-idle-shine" style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d4aa', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View><Animated.View testID="background-tilt-shine" style={[styles.shine, interactiveShineStyle]}><LinearGradient colors={['transparent', '#fff7d4bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>}
         {frameBreak ? <View pointerEvents="none" style={[styles.lowerHeroClip, { top: cardHeight * .75 }]}>{renderHero(-7, -cardHeight * .75 - 7)}</View> : <View pointerEvents="none" style={styles.artWindow}>{renderHero(8, cardHeight * .075, width - 26, cardHeight * .89)}</View>}
     </FrameInterior>
-    <CardFrame onLoad={onLoad} onError={onError} animated={frameMotionEnabled && selected && !isBack} shineStyle={shineStyle} pulseStyle={framePulseStyle} edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} />
+    <CardFrame onLoad={onLoad} onError={onError} animated={frameMotionEnabled && selected && !isBack} edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} />
+    {frameMotionEnabled && selected && !isBack && <FrameSparkles width={width} sparkleStyles={[sparkle1, sparkle2, sparkle3, sparkle4]} />}
     {frameBreak && <View pointerEvents="none" style={[styles.heroClip, { bottom: cardHeight * .25 }]}>{renderHero(53, 53)}</View>}
     <FrameStatCorners width={width} />
-    {frameMotionEnabled && selected && !isBack && <FrameSparkles width={width} sparkleStyles={[sparkle1, sparkle2, sparkle3, sparkle4]} />}
-    <CardDetails card={card} width={width} titleStyle={titleStyle} titleShineStyle={titleShineStyle} insideFrame={!frameBreak} animated={motionEnabled} onLoad={onLoad} onError={onError} />
+    <CardDetails card={card} width={width} titleStyle={titleStyle} titleShineStyle={titleShineStyle} interactiveTitleShineStyle={interactiveTitleShineStyle} insideFrame={!frameBreak} animated={motionEnabled} onLoad={onLoad} onError={onError} />
     <EvolutionBadge level={level} animated={frameMotionEnabled && selected && !isBack} glowStyle={badgeGlowStyle} gemPhase={gemPhase} width={width} onLoad={onLoad} onError={onError} />
     </Animated.View>
     <Animated.View pointerEvents="none" style={[styles.face, styles.backFace, backVisibility]}>

@@ -4,7 +4,7 @@ import { Accelerometer, DeviceMotion } from 'expo-sensors';
 import { useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const clamp = (n: number) => Math.max(-1, Math.min(1, n));
-const deadZone = (n: number) => Math.abs(n) < .025 ? 0 : clamp(n);
+const deadZone = (n: number) => Math.abs(n) < .018 ? 0 : clamp(n);
 const angleDelta = (value: number, origin: number) => Math.atan2(Math.sin(value - origin), Math.cos(value - origin));
 
 export function useDeviceTilt() {
@@ -46,7 +46,7 @@ export function useDeviceTilt() {
         try {
           if (!(await Accelerometer.isAvailableAsync()) || !valid()) return;
           Accelerometer.setUpdateInterval(50);
-          subscription = Accelerometer.addListener(v => update(v.x, v.y, 1.5, false));
+          subscription = Accelerometer.addListener(v => update(v.x, v.y, 2.5, false));
         } catch { /* Touch tilt remains available. */ }
       };
       if (Platform.OS === 'web') {
@@ -54,7 +54,7 @@ export function useDeviceTilt() {
         // browser's orientation event directly; touch remains the fallback.
         const onOrientation = (event: DeviceOrientationEvent) => {
           if (event.gamma == null || event.beta == null) return;
-          update(event.gamma * Math.PI / 180, event.beta * Math.PI / 180, 2, true);
+          update(event.gamma * Math.PI / 180, event.beta * Math.PI / 180, 3.5, true);
         };
         window.addEventListener('deviceorientation', onOrientation);
         subscription = { remove: () => window.removeEventListener('deviceorientation', onOrientation) };
@@ -68,7 +68,7 @@ export function useDeviceTilt() {
         subscription = DeviceMotion.addListener(({ rotation }) => {
           if (!rotation || !Number.isFinite(rotation.gamma) || !Number.isFinite(rotation.beta)) return;
           if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = undefined; }
-          update(rotation.gamma, rotation.beta, 2, true);
+          update(rotation.gamma, rotation.beta, 3.5, true);
         });
       } catch { await startAccelerometer(); }
     };
