@@ -5,6 +5,7 @@ import { sherlockScarfBase, sherlockScarfFrames } from '../data/sherlockScarf';
 import { draculaCapeBase, draculaCapeFrames } from '../data/draculaCape';
 import { saborEarUnderpaint } from '../data/sabor';
 import { kalaLeaves, kalaMist, kalaBlinkClosed } from '../components/KalaMotion';
+import { laWheel, laFlame, laPendant } from '../components/LaMotion';
 
 const cardImages = [
   ...cards.flatMap(card => [card.background, card.character, card.foreground, card.effects, card.titleImage]),
@@ -12,6 +13,7 @@ const cardImages = [
   draculaCapeBase, ...draculaCapeFrames,
   saborEarUnderpaint,
   kalaLeaves, kalaMist, kalaBlinkClosed,
+  laWheel, laFlame, laPendant,
   require('../../assets/cards/shared/frame-legendary-v6.png'),
   require('../../assets/cards/shared/frame-epic-v3.png'),
   require('../../assets/cards/shared/frame-rare-v1.png'),

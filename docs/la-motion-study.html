@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La of Opar — pre-base motion studies</title>
+<style>
+  body{margin:0;background:#101917;color:#eee1c8;font:15px system-ui;text-align:center}
+  main{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:20px}
+  figure{margin:0}figcaption{margin:8px}
+  .scene{position:relative;overflow:hidden;width:220px;height:330px;border:2px solid #947046;background:radial-gradient(circle at 50% 40%,#325358,#182a2a 55%,#151719)}
+  img{position:absolute;object-fit:contain}
+  .fireclip{position:absolute;left:50px;top:112px;width:120px;height:120px;overflow:hidden}
+  .flame-sheet{width:100%;height:100%;background-image:url('../assets/cards/la/studies/flame-sheet.png');background-size:400% 200%;background-repeat:no-repeat}
+  .bowl{position:absolute;left:72px;top:230px;width:76px;height:20px;background:#4e3320;border:3px solid #a37c43;border-radius:10% 10% 50% 50%}
+  .housing{position:absolute;border:10px solid #59605b;border-radius:50%;width:160px;height:160px;top:75px;left:20px;background:#192a29}
+  .wheel{left:5px;top:60px;width:210px;height:210px;animation:spin 20s linear infinite}
+  .hanger{position:absolute;width:10px;height:10px;border-radius:50%;background:#c69e57;left:105px;top:65px}
+  .pendant{left:36px;top:45px;width:148px;height:222px;transform-origin:50% 5%;animation:swing 3.5s ease-in-out infinite alternate}
+  .composition .art{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+  .composition .sun{position:absolute;left:0;top:4.7%;width:54%;height:36%;animation:spin 20s linear infinite}
+  .composition .flame-sheet{position:absolute;left:79%;top:41%;width:18%;height:12%}
+  .composition .jewel{position:absolute;left:45%;top:21%;width:15%;height:15%;transform-origin:50% 7%;animation:swing 3.5s ease-in-out infinite alternate}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes swing{to{transform:rotate(6deg)}}
+  @media(prefers-reduced-motion:reduce){img{animation:none!important}}
+</style>
+<h1>La of Opar: motion studies</h1>
+<p>Pre-base feasibility only. Inspect each piece at the intended card size; this is not final artwork.</p>
+<main>
+  <figure><div class="scene"><div class="fireclip"><div class="flame-sheet" role="img" aria-label="Eight-frame flame study"></div></div><div class="bowl"></div></div><figcaption>Flame: registered frame study</figcaption></figure>
+  <figure><div class="scene"><div class="housing"></div><img class="wheel" src="../assets/cards/la/studies/sun-wheel.png" alt=""></div><figcaption>Sun wheel: inspect center and rotation</figcaption></figure>
+  <figure><div class="scene"><div class="hanger"></div><img class="pendant" src="../assets/cards/la/studies/pendant.png" alt=""></div><figcaption>Pendant: inspect the attachment</figcaption></figure>
+  <figure><div class="scene composition"><img class="art" src="../assets/cards/la/studies/scene-composition.png" alt=""><img class="sun" src="../assets/cards/la/studies/sun-wheel.png" alt=""><div class="flame-sheet" aria-label="Composition flame"></div><img class="art" src="../assets/cards/la/studies/character-composition.png" alt=""><img class="jewel" src="../assets/cards/la/studies/pendant.png" alt=""></div><figcaption>Preliminary layer placement</figcaption></figure>
+</main>
+<script>
+  // Inspect individual painted frames rather than cross-fading double tips.
+  const flames=document.querySelectorAll('.flame-sheet');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  function draw(ms){const frame=reduced.matches?0:Math.floor(ms/115)%8;flames.forEach(flame=>flame.style.backgroundPosition=`${(frame%4)*100/3}% ${frame<4?0:100}%`);requestAnimationFrame(draw)}requestAnimationFrame(draw);
+</script>
+</html>

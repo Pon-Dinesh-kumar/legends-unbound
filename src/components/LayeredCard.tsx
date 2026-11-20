@@ -17,6 +17,7 @@ import { JaneScarf } from './JaneScarf';
 import { SaborCharacter } from './SaborCharacter';
 import { SaborSunrays } from './SaborSunrays';
 import { KalaBlink, KalaEnvironment } from './KalaMotion';
+import { LaEnvironment, LaPendant } from './LaMotion';
 
 const limit = (n: number) => { 'worklet'; return Math.max(-1, Math.min(1, n)); };
 const twinkle = (phase: number, center: number) => { 'worklet'; const t = Math.max(0, 1 - Math.abs(phase - center) / .065); return t * t * (3 - 2 * t); };
@@ -35,6 +36,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   const janeScarfPhase = useSharedValue(0), janeHairPhase = useSharedValue(0);
   const saborTailPhase = useSharedValue(0), saborEarPhase = useSharedValue(0), saborRaysPhase = useSharedValue(0);
   const kalaLeafPhase = useSharedValue(0), kalaMistPhase = useSharedValue(0), kalaBlinkPhase = useSharedValue(0);
+  const laWheelPhase = useSharedValue(0), laFirePhase = useSharedValue(0), laPendantPhase = useSharedValue(0);
   const breath = useSharedValue(0), sparklePhase = useSharedValue(0), gemPhase = useSharedValue(0), reveal = useSharedValue(0);
   useEffect(() => {
     if (selected && frameMotionEnabled && !isBack && card.rarity !== 'RARE' && card.rarity !== 'COMMON') {
@@ -65,7 +67,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     return () => { cancelAnimation(scarfPhase); };
   }, [card.id, selected, isBack, motionEnabled, scarfPhase]);
   useEffect(() => {
-    if (card.id !== 'tarzan' && card.id !== 'sherlock' && card.id !== 'jane' && card.id !== 'sabor' && card.id !== 'kala') return;
+    if (card.id !== 'tarzan' && card.id !== 'sherlock' && card.id !== 'jane' && card.id !== 'sabor' && card.id !== 'kala' && card.id !== 'la') return;
     const listener = AppState.addEventListener('change', state => setAppForeground(state === 'active'));
     return () => listener.remove();
   }, [card.id]);
@@ -119,6 +121,14 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     } else { cancelAnimation(kalaLeafPhase); cancelAnimation(kalaMistPhase); cancelAnimation(kalaBlinkPhase); kalaLeafPhase.value = 0; kalaMistPhase.value = 0; kalaBlinkPhase.value = 0; }
     return () => { cancelAnimation(kalaLeafPhase); cancelAnimation(kalaMistPhase); cancelAnimation(kalaBlinkPhase); };
   }, [card.id, selected, isBack, motionEnabled, appForeground, kalaLeafPhase, kalaMistPhase, kalaBlinkPhase]);
+  useEffect(() => {
+    if (card.id === 'la' && selected && !isBack && motionEnabled && appForeground) {
+      laWheelPhase.value = withRepeat(withTiming(1, { duration: 20000, easing: Easing.linear }), -1, false);
+      laFirePhase.value = withRepeat(withTiming(8, { duration: 920, easing: Easing.linear }), -1, false);
+      laPendantPhase.value = withRepeat(withTiming(1, { duration: 3500, easing: Easing.inOut(Easing.sin) }), -1, true);
+    } else { cancelAnimation(laWheelPhase); cancelAnimation(laFirePhase); cancelAnimation(laPendantPhase); laWheelPhase.value = 0; laFirePhase.value = 0; laPendantPhase.value = 0; }
+    return () => { cancelAnimation(laWheelPhase); cancelAnimation(laFirePhase); cancelAnimation(laPendantPhase); };
+  }, [card.id, selected, isBack, motionEnabled, appForeground, laWheelPhase, laFirePhase, laPendantPhase]);
   useEffect(() => { dragX.value = 0; dragY.value = 0; }, [level, reducedMotion, dragX, dragY]);
   const pan = Gesture.Pan().enabled(tiltEnabled).onUpdate(e => {
     dragX.value = limit(e.translationX / (width * .20));
@@ -186,6 +196,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     {card.id === 'sherlock' && showUpperDetails && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} />}
     {card.id === 'jane' && showUpperDetails && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} bounds={[124, 530, 185, 175]} subtleBoost />}
     {card.id === 'kala' && showUpperDetails && <KalaBlink phase={kalaBlinkPhase} />}
+    {card.id === 'la' && showUpperDetails && <LaPendant phase={laPendantPhase} onLoad={onLoad} onError={onError} />}
     {card.id === 'sherlock' && (Platform.OS === 'web' ? React.createElement('div', {
       'aria-hidden': true,
       style: { position: 'absolute', inset: 0, pointerEvents: 'none', maskImage: 'linear-gradient(to right, transparent 43%, black 51%)', WebkitMaskImage: 'linear-gradient(to right, transparent 43%, black 51%)' },
@@ -195,7 +206,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     <Animated.View accessible accessibilityLabel={`${card.name}, ${evolutionPolicy[level].label}, level ${level === 'origin' ? 1 : level === 'awakened' ? 2 : 3} of 3, ${isBack ? 'card back' : 'card front'}.${tiltEnabled ? ' Drag to tilt.' : ''}`} style={[{ width, height: width * 1.5 }, cardStyle]}>
     <Animated.View pointerEvents="none" style={[styles.face, frontVisibility]}>
     <FrameInterior>
-        <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View testID="card-background-layer" style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} />{card.id === 'tarzan' && <TarzanWaterfall source={card.background} width={width} active={motionEnabled && selected && !isBack} onError={onError} />}{card.id === 'sabor' && <SaborSunrays source={card.background} phase={saborRaysPhase} />}{card.id === 'kala' && <KalaEnvironment leafPhase={kalaLeafPhase} mistPhase={kalaMistPhase} onLoad={onLoad} onError={onError} />}</Animated.View></View>
+        <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View testID="card-background-layer" style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} />{card.id === 'tarzan' && <TarzanWaterfall source={card.background} width={width} active={motionEnabled && selected && !isBack} onError={onError} />}{card.id === 'sabor' && <SaborSunrays source={card.background} phase={saborRaysPhase} />}{card.id === 'kala' && <KalaEnvironment leafPhase={kalaLeafPhase} mistPhase={kalaMistPhase} onLoad={onLoad} onError={onError} />}{card.id === 'la' && <LaEnvironment wheel={laWheelPhase} fire={laFirePhase} width={width} onLoad={onLoad} onError={onError} />}</Animated.View></View>
         <View pointerEvents="none" style={styles.artWindow}><Animated.View testID="card-foreground-layer" style={[styles.overlay, frontStyle]}><Image source={card.foreground} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('foreground')} onError={onError} /><View style={[StyleSheet.absoluteFill, { opacity: .8 }]}><Image source={card.effects} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('effects')} onError={onError} /></View></Animated.View></View>
         {motionEnabled && <View pointerEvents="none" style={styles.lightClip}><Animated.View testID="background-idle-shine" style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d4aa', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View><Animated.View testID="background-tilt-shine" style={[styles.shine, interactiveShineStyle]}><LinearGradient colors={['transparent', '#fff7d4bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>}
         {frameBreak ? <View pointerEvents="none" style={[styles.lowerHeroClip, { top: cardHeight * .75 }]}>{renderHero(-7, -cardHeight * .75 - 7, width + 14, cardHeight + 7, false)}</View> : <View pointerEvents="none" style={styles.artWindow}>{renderHero(8, cardHeight * .075, width - 26, cardHeight * .89)}</View>}
