@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ImageBackground, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -21,16 +21,27 @@ const extraLayers: Record<string, string[]> = {
 };
 const requiredLayers = cards.flatMap(card => [...baseLayers, ...(extraLayers[card.id] ?? [])].map(layer => `${card.id}:${layer}`));
 
-function CardSlot({ card, width, tiltX, tiltY, selected, level, onLoad, onError }: { card: Card; width: number; tiltX: SharedValue<number>; tiltY: SharedValue<number>; selected: boolean; level: Evolution; onLoad: (layer: string) => void; onError: () => void }) {
+const CardSlot = React.memo(function CardSlot({ card, width, tiltX, tiltY, selected, level, warmed, onLoad, onError }: { card: Card; width: number; tiltX: SharedValue<number>; tiltY: SharedValue<number>; selected: boolean; level: Evolution; warmed: boolean; onLoad: (cardId: string, layer: string) => void; onError: () => void }) {
   const opacity = useSharedValue(selected ? 1 : 0);
-  useEffect(() => { opacity.value = withTiming(selected ? 1 : 0, { duration: 200 }); }, [opacity, selected]);
+  // All slots stay mounted and visible to the renderer during warm-up so image
+  // load events still represent the complete collection. Afterwards keep an
+  // outgoing card renderable until its 200 ms fade finishes, then stop the
+  // browser from painting its otherwise invisible images and SVG masks.
+  const [renderable, setRenderable] = useState(true);
+  useEffect(() => {
+    opacity.value = withTiming(selected ? 1 : 0, { duration: 200 });
+    if (Platform.OS !== 'web' || !warmed || selected) { setRenderable(true); return; }
+    const timer = setTimeout(() => setRenderable(false), 220);
+    return () => clearTimeout(timer);
+  }, [opacity, selected, warmed]);
   const fade = useAnimatedStyle(() => ({ opacity: opacity.value }));
-  return <Animated.View pointerEvents={selected ? 'auto' : 'none'} aria-hidden={!selected} accessibilityElementsHidden={!selected} importantForAccessibility={selected ? 'auto' : 'no-hide-descendants'} style={[styles.cardSlot, fade]}>
-    <LayeredCard card={card} width={width} tiltX={tiltX} tiltY={tiltY} selected={selected} level={level} onLoad={onLoad} onError={onError} />
+  const reportLayer = useCallback((layer: string) => onLoad(card.id, layer), [card.id, onLoad]);
+  return <Animated.View pointerEvents={selected ? 'auto' : 'none'} aria-hidden={!selected} accessibilityElementsHidden={!selected} importantForAccessibility={selected ? 'auto' : 'no-hide-descendants'} style={[styles.cardSlot, fade, Platform.OS === 'web' && warmed && !selected && !renderable && styles.hiddenSlot]}>
+    <LayeredCard card={card} width={width} tiltX={tiltX} tiltY={tiltY} selected={selected} level={level} onLoad={reportLayer} onError={onError} />
   </Animated.View>;
-}
+});
 
-function Showcase({ onLoaded, onError }: { onLoaded: () => void; onError: () => void }) {
+function Showcase({ onLoaded, onError, warmed }: { onLoaded: () => void; onError: () => void; warmed: boolean }) {
   const [selected, setSelected] = useState(0);
   const [level, setLevel] = useState<Evolution>('origin');
   const loadedLayers = useRef(new Set<string>());
@@ -38,19 +49,19 @@ function Showcase({ onLoaded, onError }: { onLoaded: () => void; onError: () => 
   const { width, height } = useWindowDimensions();
   const tilt = useDeviceTilt();
   const cardWidth = Math.min(width * .72, Math.max(160, (height - 430) / 1.5), 350);
-  const markLoaded = (cardId: string, layer: string) => {
+  const markLoaded = useCallback((cardId: string, layer: string) => {
     loadedLayers.current.add(`${cardId}:${layer}`);
     if (!reportedReady.current && requiredLayers.every(key => loadedLayers.current.has(key))) {
       reportedReady.current = true;
       onLoaded();
     }
-  };
+  }, [onLoaded]);
   return <LinearGradient colors={['#111c20', '#0c1013', '#161216']} style={styles.screen}>
     <StatusBar style="light" />
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}><Text style={styles.brand}>LEGENDS <Text style={styles.brandAccent}>UNBOUND</Text></Text><Text style={styles.brandSub}>A COLLECTION OF EXTRAORDINARY STORIES</Text></View>
       <View style={styles.intro}><Text style={styles.eyebrow}>THE FIRST COLLECTION  /  001—{String(cards.length).padStart(3, '0')}</Text><Text style={styles.heading}>Legends come to life.</Text><Text style={styles.caption}>Drag or tilt to explore · tap below to flip.</Text></View>
-      <View style={styles.stage}>{cards.map((item, i) => <CardSlot key={item.id} card={item} width={cardWidth} tiltX={tilt.x} tiltY={tilt.y} selected={i === selected} level={level} onLoad={layer => markLoaded(item.id, layer)} onError={onError} />)}</View>
+      <View style={styles.stage}>{cards.map((item, i) => <CardSlot key={item.id} card={item} width={cardWidth} tiltX={tilt.x} tiltY={tilt.y} selected={i === selected} level={level} warmed={warmed} onLoad={markLoaded} onError={onError} />)}</View>
       <View style={styles.evolutionHeader}><Text style={styles.selectorLabel}>EVOLUTION</Text><Text style={styles.evolutionHint}>{level === 'origin' ? 'WITHIN THE FRAME' : level === 'awakened' ? 'FRAME BREAK' : 'LIVING ART'}</Text></View>
       <View accessibilityRole="radiogroup" accessibilityLabel="Card evolution" style={styles.evolutions}>{evolutions.map((item, i) => <Pressable key={item} accessibilityRole="radio" accessibilityLabel={`${evolutionPolicy[item].label} evolution`} accessibilityState={{ checked: level === item }} aria-checked={level === item} onPress={() => setLevel(item)} style={[styles.evolution, level === item && styles.evolutionSelected]}><Text style={[styles.evolutionNumber, level === item && styles.evolutionTextSelected]}>0{i + 1}</Text><Text style={[styles.evolutionText, level === item && styles.evolutionTextSelected]}>{evolutionPolicy[item].label.toUpperCase()}</Text></Pressable>)}</View>
       <View style={styles.selectorHeader}><Text style={styles.selectorLabel}>CHOOSE YOUR LEGEND</Text><Text style={styles.count}>{String(selected + 1).padStart(2, '0')} <Text style={styles.muted}>/ {String(cards.length).padStart(2, '0')}</Text></Text></View>
@@ -71,7 +82,7 @@ export default function App() {
     return () => { active = false; };
   }, [attempt]);
   return <GestureHandlerRootView style={{ flex: 1 }}>
-    {(loading === 'warming' || loading === 'ready') && <Showcase key={attempt} onLoaded={() => setLoading('ready')} onError={() => setLoading('error')} />}
+    {(loading === 'warming' || loading === 'ready') && <Showcase key={attempt} warmed={loading === 'ready'} onLoaded={() => setLoading('ready')} onError={() => setLoading('error')} />}
     {loading !== 'ready' && <LinearGradient colors={['#111c20', '#0c1013', '#161216']} style={[styles.loadingScreen, StyleSheet.absoluteFill]}>
       <Text style={styles.brand}>LEGENDS <Text style={styles.brandAccent}>UNBOUND</Text></Text>
       <Text accessibilityLiveRegion="polite" style={styles.loadingText}>{loading === 'error' ? 'The card art could not be loaded.' : 'Preparing your collection…'}</Text>
@@ -94,6 +105,7 @@ const styles = StyleSheet.create({
   evolutionText: { color: '#a7a093', fontSize: 8, fontWeight: '700', letterSpacing: .7 },
   evolutionTextSelected: { color: '#f1d69c' },
   cardSlot: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, justifyContent: 'center', alignItems: 'center' },
+  hiddenSlot: { display: 'none' },
   selectorHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }, selectorLabel: { color: '#c2b496', fontSize: 9, letterSpacing: 1.8, fontWeight: '700' }, count: { color: '#d8c49f', fontFamily: 'serif', fontSize: 12 }, muted: { color: '#6c6d65' },
   selector: { flexGrow: 0, height: 59 }, selectorContent: { flexDirection: 'row', gap: 8 }, choice: { height: 59, borderWidth: 1, borderColor: '#494b42', borderRadius: 6, overflow: 'hidden' }, choiceImage: { flex: 1 }, choiceShade: { flex: 1, justifyContent: 'flex-end', padding: 7 }, choiceName: { color: '#c8c4b8', fontFamily: 'serif', fontSize: 10, fontWeight: '700' }, footer: { color: '#6d716b', fontSize: 8, letterSpacing: 2, textAlign: 'center', marginTop: 16, marginBottom: 12 },
 });

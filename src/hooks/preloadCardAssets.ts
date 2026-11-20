@@ -19,7 +19,9 @@ const cardImages = [
 const decodedWebImages: HTMLImageElement[] = [];
 
 export async function preloadCardAssets() {
-  const assets = await Asset.loadAsync(cardImages);
+  // Shared modules can occur in several cards. Decode each source once while
+  // retaining it for the life of the showcase, rather than warming duplicates.
+  const assets = await Asset.loadAsync([...new Set(cardImages)]);
   const decoded = await Promise.all(assets.map(async asset => {
     const uri = asset.localUri ?? asset.uri;
     if (Platform.OS === 'web') {

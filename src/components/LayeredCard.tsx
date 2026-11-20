@@ -75,7 +75,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   }, [card.id, selected, isBack, motionEnabled, appForeground, tarzanClothPhase]);
   useEffect(() => {
     if ((card.id === 'sherlock' || card.id === 'jane') && selected && !isBack && motionEnabled && appForeground) {
-      lensPhase.value = withRepeat(withTiming(1, { duration: 5000, easing: Easing.inOut(Easing.sin) }), -1, true);
+      lensPhase.value = withRepeat(withTiming(1, { duration: card.id === 'jane' ? 4500 : 5000, easing: Easing.inOut(Easing.sin) }), -1, true);
     } else {
       cancelAnimation(lensPhase);
       lensPhase.value = 0;
@@ -84,13 +84,13 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   }, [card.id, selected, isBack, motionEnabled, appForeground, lensPhase]);
   useEffect(() => {
     if (card.id === 'jane' && selected && !isBack && motionEnabled && appForeground) {
-      janeScarfPhase.value = withRepeat(withTiming(Math.PI * 2, { duration: 6100, easing: Easing.linear }), -1, false);
+      janeScarfPhase.value = withRepeat(withTiming(Math.PI * 2, { duration: 5700, easing: Easing.linear }), -1, false);
     } else { cancelAnimation(janeScarfPhase); janeScarfPhase.value = 0; }
     return () => { cancelAnimation(janeScarfPhase); };
   }, [card.id, selected, isBack, motionEnabled, appForeground, janeScarfPhase]);
   useEffect(() => {
     if (card.id === 'jane' && selected && !isBack && motionEnabled && appForeground) {
-      janeHairPhase.value = withRepeat(withTiming(Math.PI * 2, { duration: 7300, easing: Easing.linear }), -1, false);
+      janeHairPhase.value = withRepeat(withTiming(Math.PI * 2, { duration: 6800, easing: Easing.linear }), -1, false);
     } else { cancelAnimation(janeHairPhase); janeHairPhase.value = 0; }
     return () => { cancelAnimation(janeHairPhase); };
   }, [card.id, selected, isBack, motionEnabled, appForeground, janeHairPhase]);
@@ -142,15 +142,18 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     <Animated.View style={[StyleSheet.absoluteFill, scarfFrame1]}><Image source={sherlockScarfFrames[1]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('scarf-1')} onError={onError} /></Animated.View>
     <Animated.View style={[StyleSheet.absoluteFill, scarfFrame2]}><Image source={sherlockScarfFrames[2]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('scarf-2')} onError={onError} /></Animated.View>
   </Animated.View>;
-  const renderHero = (left: number, top: number, heroWidth = width + 14, heroHeight = cardHeight + 7, showLens = true) => <Animated.View style={[{ position: 'absolute', left, top, width: heroWidth, height: heroHeight }, heroStyle]}>
+  // The lower copy is clipped to the bottom quarter. Jane's hair, scarf and
+  // compass are all above that clip even at tilt extremes, so only the upper
+  // copy needs their SVG rig. Revisit this if Jane gains motion in the lower art.
+  const renderHero = (left: number, top: number, heroWidth = width + 14, heroHeight = cardHeight + 7, showUpperDetails = true) => <Animated.View style={[{ position: 'absolute', left, top, width: heroWidth, height: heroHeight }, heroStyle]}>
     {card.id === 'dracula' && <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: [(width + 14) * .25, (cardHeight + 7) * .33, 0] }, capeWave]}>
       <Image source={draculaCapeFrames[0]} resizeMode="contain" style={styles.scarf} onLoad={() => onLoad('cape-0')} onError={onError} />
       <Animated.View style={[StyleSheet.absoluteFill, scarfFrame1]}><Image source={draculaCapeFrames[1]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-1')} onError={onError} /></Animated.View>
       <Animated.View style={[StyleSheet.absoluteFill, scarfFrame2]}><Image source={draculaCapeFrames[2]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-2')} onError={onError} /></Animated.View>
     </Animated.View>}
-    {card.id === 'tarzan' ? <TarzanCharacter source={card.character} phase={tarzanClothPhase} onLoad={() => onLoad('character')} onError={onError} /> : card.id === 'jane' ? <JaneScarf source={card.character} phase={janeScarfPhase} hairPhase={janeHairPhase} active={motionEnabled && selected && !isBack && appForeground} onLoad={() => onLoad('character')} onError={onError} /> : <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.id === 'dracula' ? draculaCapeBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />}
-    {card.id === 'sherlock' && showLens && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} />}
-    {card.id === 'jane' && showLens && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} bounds={[124, 530, 185, 175]} />}
+    {card.id === 'tarzan' ? <TarzanCharacter source={card.character} phase={tarzanClothPhase} onLoad={() => onLoad('character')} onError={onError} /> : card.id === 'jane' && showUpperDetails ? <JaneScarf source={card.character} phase={janeScarfPhase} hairPhase={janeHairPhase} active={motionEnabled && selected && !isBack && appForeground} onLoad={() => onLoad('character')} onError={onError} /> : <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.id === 'dracula' ? draculaCapeBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />}
+    {card.id === 'sherlock' && showUpperDetails && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} />}
+    {card.id === 'jane' && showUpperDetails && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} bounds={[124, 530, 185, 175]} subtleBoost />}
     {card.id === 'sherlock' && (Platform.OS === 'web' ? React.createElement('div', {
       'aria-hidden': true,
       style: { position: 'absolute', inset: 0, pointerEvents: 'none', maskImage: 'linear-gradient(to right, transparent 43%, black 51%)', WebkitMaskImage: 'linear-gradient(to right, transparent 43%, black 51%)' },
