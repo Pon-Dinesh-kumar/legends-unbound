@@ -12,6 +12,7 @@ import { Evolution, evolutionPolicy } from '../data/evolutions';
 import { FrameInterior } from './FrameInterior';
 import { TarzanWaterfall } from './TarzanWaterfall';
 import { TarzanCharacter } from './TarzanCharacter';
+import { SherlockLens } from './SherlockLens';
 
 const limit = (n: number) => { 'worklet'; return Math.max(-1, Math.min(1, n)); };
 const twinkle = (phase: number, center: number) => { 'worklet'; const t = Math.max(0, 1 - Math.abs(phase - center) / .065); return t * t * (3 - 2 * t); };
@@ -26,7 +27,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   const tiltEnabled = !reducedMotion;
   const turn = useSharedValue(0);
   const dragX = useSharedValue(0), dragY = useSharedValue(0), shimmer = useSharedValue(0);
-  const scarfPhase = useSharedValue(0), tarzanClothPhase = useSharedValue(0);
+  const scarfPhase = useSharedValue(0), tarzanClothPhase = useSharedValue(0), lensPhase = useSharedValue(0);
   const breath = useSharedValue(0), sparklePhase = useSharedValue(0), gemPhase = useSharedValue(0), reveal = useSharedValue(0);
   useEffect(() => {
     if (selected && frameMotionEnabled && !isBack) {
@@ -57,7 +58,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     return () => { cancelAnimation(scarfPhase); };
   }, [card.id, selected, isBack, motionEnabled, scarfPhase]);
   useEffect(() => {
-    if (card.id !== 'tarzan') return;
+    if (card.id !== 'tarzan' && card.id !== 'sherlock') return;
     const listener = AppState.addEventListener('change', state => setAppForeground(state === 'active'));
     return () => listener.remove();
   }, [card.id]);
@@ -70,6 +71,15 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     }
     return () => { cancelAnimation(tarzanClothPhase); };
   }, [card.id, selected, isBack, motionEnabled, appForeground, tarzanClothPhase]);
+  useEffect(() => {
+    if (card.id === 'sherlock' && selected && !isBack && motionEnabled && appForeground) {
+      lensPhase.value = withRepeat(withTiming(1, { duration: 5000, easing: Easing.inOut(Easing.sin) }), -1, true);
+    } else {
+      cancelAnimation(lensPhase);
+      lensPhase.value = 0;
+    }
+    return () => { cancelAnimation(lensPhase); };
+  }, [card.id, selected, isBack, motionEnabled, appForeground, lensPhase]);
   useEffect(() => { dragX.value = 0; dragY.value = 0; }, [level, reducedMotion, dragX, dragY]);
   const pan = Gesture.Pan().enabled(tiltEnabled).onUpdate(e => {
     dragX.value = limit(e.translationX / (width * .20));
@@ -118,13 +128,14 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     <Animated.View style={[StyleSheet.absoluteFill, scarfFrame1]}><Image source={sherlockScarfFrames[1]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('scarf-1')} onError={onError} /></Animated.View>
     <Animated.View style={[StyleSheet.absoluteFill, scarfFrame2]}><Image source={sherlockScarfFrames[2]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('scarf-2')} onError={onError} /></Animated.View>
   </Animated.View>;
-  const renderHero = (left: number, top: number, heroWidth = width + 14, heroHeight = cardHeight + 7) => <Animated.View style={[{ position: 'absolute', left, top, width: heroWidth, height: heroHeight }, heroStyle]}>
+  const renderHero = (left: number, top: number, heroWidth = width + 14, heroHeight = cardHeight + 7, showLens = true) => <Animated.View style={[{ position: 'absolute', left, top, width: heroWidth, height: heroHeight }, heroStyle]}>
     {card.id === 'dracula' && <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: [(width + 14) * .25, (cardHeight + 7) * .33, 0] }, capeWave]}>
       <Image source={draculaCapeFrames[0]} resizeMode="contain" style={styles.scarf} onLoad={() => onLoad('cape-0')} onError={onError} />
       <Animated.View style={[StyleSheet.absoluteFill, scarfFrame1]}><Image source={draculaCapeFrames[1]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-1')} onError={onError} /></Animated.View>
       <Animated.View style={[StyleSheet.absoluteFill, scarfFrame2]}><Image source={draculaCapeFrames[2]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-2')} onError={onError} /></Animated.View>
     </Animated.View>}
     {card.id === 'tarzan' ? <TarzanCharacter source={card.character} phase={tarzanClothPhase} onLoad={() => onLoad('character')} onError={onError} /> : <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.id === 'dracula' ? draculaCapeBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />}
+    {card.id === 'sherlock' && showLens && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} />}
     {card.id === 'sherlock' && (Platform.OS === 'web' ? React.createElement('div', {
       'aria-hidden': true,
       style: { position: 'absolute', inset: 0, pointerEvents: 'none', maskImage: 'linear-gradient(to right, transparent 43%, black 51%)', WebkitMaskImage: 'linear-gradient(to right, transparent 43%, black 51%)' },
@@ -137,7 +148,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
         <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} />{card.id === 'tarzan' && <TarzanWaterfall source={card.background} width={width} active={motionEnabled && selected && !isBack} onError={onError} />}</Animated.View></View>
         <View pointerEvents="none" style={styles.artWindow}><Animated.View style={[styles.overlay, frontStyle]}><Image source={card.foreground} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('foreground')} onError={onError} /><View style={[StyleSheet.absoluteFill, { opacity: .8 }]}><Image source={card.effects} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('effects')} onError={onError} /></View></Animated.View></View>
         {motionEnabled && <View pointerEvents="none" style={styles.lightClip}><Animated.View testID="background-idle-shine" style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d4aa', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View><Animated.View testID="background-tilt-shine" style={[styles.shine, interactiveShineStyle]}><LinearGradient colors={['transparent', '#fff7d4bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>}
-        {frameBreak ? <View pointerEvents="none" style={[styles.lowerHeroClip, { top: cardHeight * .75 }]}>{renderHero(-7, -cardHeight * .75 - 7)}</View> : <View pointerEvents="none" style={styles.artWindow}>{renderHero(8, cardHeight * .075, width - 26, cardHeight * .89)}</View>}
+        {frameBreak ? <View pointerEvents="none" style={[styles.lowerHeroClip, { top: cardHeight * .75 }]}>{renderHero(-7, -cardHeight * .75 - 7, width + 14, cardHeight + 7, false)}</View> : <View pointerEvents="none" style={styles.artWindow}>{renderHero(8, cardHeight * .075, width - 26, cardHeight * .89)}</View>}
     </FrameInterior>
     <CardFrame onLoad={onLoad} onError={onError} animated={frameMotionEnabled && selected && !isBack} edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} />
     {frameMotionEnabled && selected && !isBack && <FrameSparkles width={width} sparkleStyles={[sparkle1, sparkle2, sparkle3, sparkle4]} />}
