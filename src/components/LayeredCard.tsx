@@ -150,7 +150,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     </Animated.View>}
     {card.id === 'tarzan' ? <TarzanCharacter source={card.character} phase={tarzanClothPhase} onLoad={() => onLoad('character')} onError={onError} /> : card.id === 'jane' ? <JaneScarf source={card.character} phase={janeScarfPhase} hairPhase={janeHairPhase} active={motionEnabled && selected && !isBack && appForeground} onLoad={() => onLoad('character')} onError={onError} /> : <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.id === 'dracula' ? draculaCapeBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />}
     {card.id === 'sherlock' && showLens && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} />}
-    {card.id === 'jane' && showLens && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} bounds={[124, 530, 185, 175]} stronger />}
+    {card.id === 'jane' && showLens && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} bounds={[124, 530, 185, 175]} />}
     {card.id === 'sherlock' && (Platform.OS === 'web' ? React.createElement('div', {
       'aria-hidden': true,
       style: { position: 'absolute', inset: 0, pointerEvents: 'none', maskImage: 'linear-gradient(to right, transparent 43%, black 51%)', WebkitMaskImage: 'linear-gradient(to right, transparent 43%, black 51%)' },

@@ -19,8 +19,8 @@ export function JaneScarf({ source, phase, hairPhase, active, onLoad, onError }:
   }, [active]);
   const loaded = (part: number) => { parts.current.add(part); if (parts.current.size === 3) setReady(true); };
   const base = `janeScarfBase${uid}`, clip = `janeScarfTail${uid}`, root = `janeScarfRoot${uid}`;
-  const motion = useAnimatedProps(() => ({ transform: `rotate(${Math.sin(phase.value) * 2.6} 680 600)` }));
-  const hairMotion = useAnimatedProps(() => ({ transform: `rotate(${Math.sin(hairPhase.value) * 3.8} 620 315)` }));
+  const motion = useAnimatedProps(() => ({ transform: `rotate(${Math.sin(phase.value) * 1.8} 680 600)` }));
+  const hairMotion = useAnimatedProps(() => ({ transform: `rotate(${Math.sin(hairPhase.value) * 2.8} 620 315)` }));
   return <>
     <Image source={source} resizeMode="contain" style={[StyleSheet.absoluteFill, { width: '100%', height: '100%', opacity: active && ready ? 0 : 1 }]} onLoad={onLoad} onError={onError} />
     {active && <Svg testID="jane-scarf-rig" pointerEvents="none" width="100%" height="100%" viewBox="0 0 1024 1536" preserveAspectRatio="xMidYMid meet" style={[StyleSheet.absoluteFill, { opacity: ready ? 1 : 0 }]}>
