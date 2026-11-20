@@ -4,15 +4,19 @@ import { cards } from '../data/cards';
 import { sherlockScarfBase, sherlockScarfFrames } from '../data/sherlockScarf';
 import { draculaCapeBase, draculaCapeFrames } from '../data/draculaCape';
 import { saborEarUnderpaint } from '../data/sabor';
+import { kalaLeaves, kalaMist, kalaBlinkClosed } from '../components/KalaMotion';
 
 const cardImages = [
   ...cards.flatMap(card => [card.background, card.character, card.foreground, card.effects, card.titleImage]),
   sherlockScarfBase, ...sherlockScarfFrames,
   draculaCapeBase, ...draculaCapeFrames,
   saborEarUnderpaint,
+  kalaLeaves, kalaMist, kalaBlinkClosed,
   require('../../assets/cards/shared/frame-legendary-v6.png'),
   require('../../assets/cards/shared/frame-epic-v3.png'),
   require('../../assets/cards/shared/frame-rare-v1.png'),
+  require('../../assets/cards/shared/frame-common-v1.png'),
+  require('../../assets/cards/shared/evolution-gem-common-v1.png'),
   require('../../assets/cards/shared/evolution-gem-active-v1.png'),
   require('../../assets/cards/shared/evolution-gem-epic-v1.png'),
   require('../../assets/cards/shared/back-sherlock.png'),

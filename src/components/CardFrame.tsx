@@ -12,7 +12,9 @@ const TitleMask = MaskedView as unknown as React.ComponentType<React.ComponentPr
 const legendaryFrameAsset = require('../../assets/cards/shared/frame-legendary-v6.png');
 export const epicFrameAsset = require('../../assets/cards/shared/frame-epic-v3.png');
 export const rareFrameAsset = require('../../assets/cards/shared/frame-rare-v1.png');
+export const commonFrameAsset = require('../../assets/cards/shared/frame-common-v1.png');
 const getFrameAsset = (rarity: Card['rarity']) => {
+  if (rarity === 'COMMON') return commonFrameAsset;
   if (rarity === 'EPIC') return epicFrameAsset;
   if (rarity === 'RARE') return rareFrameAsset;
   if (rarity === 'LEGENDARY') return legendaryFrameAsset;
@@ -20,6 +22,7 @@ const getFrameAsset = (rarity: Card['rarity']) => {
 };
 const activeGemAsset = require('../../assets/cards/shared/evolution-gem-active-v1.png');
 const epicGemAsset = require('../../assets/cards/shared/evolution-gem-epic-v1.png');
+const commonGemAsset = require('../../assets/cards/shared/evolution-gem-common-v1.png');
 
 type FrameMotionStyle = StyleProp<AnimatedStyle<ViewStyle>>;
 
@@ -153,7 +156,7 @@ export function EvolutionBadge({ rarity, level, animated, glowStyle, gemPhase, w
       const clipId = `socket${uid}${index}`;
       return <View key={item} style={[styles.diamondMount, { width: side, height: side, left, top }]}>
         {index < filled ? <>
-          <Image source={rarity === 'EPIC' ? epicGemAsset : activeGemAsset} resizeMode="contain" style={styles.nameImage} onLoad={() => onLoad('gem')} onError={onError} />
+          <Image source={rarity === 'COMMON' ? commonGemAsset : rarity === 'EPIC' ? epicGemAsset : activeGemAsset} resizeMode="contain" style={[styles.nameImage, rarity === 'COMMON' && styles.commonGem]} onLoad={() => onLoad('gem')} onError={onError} />
           {animated && <Animated.View style={[StyleSheet.absoluteFill, glowStyle]}><Svg width="100%" height="100%" viewBox="0 0 100 100"><Path d="M50 12 L87 49 L50 49 Z" fill="#fffef0" opacity=".9" /><Path d="M13 51 L50 51 L50 87 Z" fill={rarity === 'EPIC' ? '#dda8ff' : '#ffdd75'} opacity=".65" /><Path d="M50 20 L53 45 L78 50 L53 54 L50 80 L47 54 L22 50 L47 45 Z" fill="#fffdf0" opacity=".8" /></Svg></Animated.View>}
           {animated && <GemShine side={side} index={index} phase={gemPhase} epic={rarity === 'EPIC'} />}
         </> : <Svg width="100%" height="100%" viewBox="0 0 100 100">
@@ -169,7 +172,7 @@ export function CardDetails({ card, width, titleStyle, titleShineStyle, interact
   const titleUri = Platform.OS === 'web' ? Asset.fromModule(card.titleImage).uri : undefined;
   const shine = <><Animated.View testID="title-idle-shine" style={[styles.titleShine, titleShineStyle]}><LinearGradient colors={['transparent', '#fff5d6bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View><Animated.View testID="title-tilt-shine" style={[styles.titleShine, interactiveTitleShineStyle]}><LinearGradient colors={['transparent', '#fff8e0dd', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></>;
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-    <Animated.View style={[styles.nameArt, insideFrame && styles.nameArtInside, card.id === 'sabor' && styles.saborNameArt, titleStyle]}>
+    <Animated.View style={[styles.nameArt, insideFrame && styles.nameArtInside, card.id === 'sabor' && styles.saborNameArt, card.id === 'kala' && styles.kalaNameArt, titleStyle]}>
       <Image source={card.titleImage} resizeMode="contain" style={styles.nameImage} onLoad={() => onLoad('title')} onError={onError} />
       {animated && (Platform.OS === 'web' ? React.createElement('div', {
         'aria-hidden': true,
@@ -207,6 +210,8 @@ const styles = StyleSheet.create({
   // Keep the larger carved Sabor wordmark clear of the lower Rare rail.
   saborNameArt: { bottom: '3%' },
   nameImage: { width: '100%', height: '100%' },
+  commonGem: { transform: [{ scale: .82 }] },
+  kalaNameArt: { bottom: '4%' },
   titleShine: { position: 'absolute', width: '30%', height: '200%', top: '-50%' },
 });
 
