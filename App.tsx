@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -49,14 +49,14 @@ function Showcase({ onLoaded, onError }: { onLoaded: () => void; onError: () => 
     <StatusBar style="light" />
     <SafeAreaView style={styles.safe}>
       <View style={styles.header}><Text style={styles.brand}>LEGENDS <Text style={styles.brandAccent}>UNBOUND</Text></Text><Text style={styles.brandSub}>A COLLECTION OF EXTRAORDINARY STORIES</Text></View>
-      <View style={styles.intro}><Text style={styles.eyebrow}>THE FIRST COLLECTION  /  001—003</Text><Text style={styles.heading}>Legends come to life.</Text><Text style={styles.caption}>Drag or tilt to explore · tap below to flip.</Text></View>
+      <View style={styles.intro}><Text style={styles.eyebrow}>THE FIRST COLLECTION  /  001—{String(cards.length).padStart(3, '0')}</Text><Text style={styles.heading}>Legends come to life.</Text><Text style={styles.caption}>Drag or tilt to explore · tap below to flip.</Text></View>
       <View style={styles.stage}>{cards.map((item, i) => <CardSlot key={item.id} card={item} width={cardWidth} tiltX={tilt.x} tiltY={tilt.y} selected={i === selected} level={level} onLoad={layer => markLoaded(item.id, layer)} onError={onError} />)}</View>
       <View style={styles.evolutionHeader}><Text style={styles.selectorLabel}>EVOLUTION</Text><Text style={styles.evolutionHint}>{level === 'origin' ? 'WITHIN THE FRAME' : level === 'awakened' ? 'FRAME BREAK' : 'LIVING ART'}</Text></View>
       <View accessibilityRole="radiogroup" accessibilityLabel="Card evolution" style={styles.evolutions}>{evolutions.map((item, i) => <Pressable key={item} accessibilityRole="radio" accessibilityLabel={`${evolutionPolicy[item].label} evolution`} accessibilityState={{ checked: level === item }} aria-checked={level === item} onPress={() => setLevel(item)} style={[styles.evolution, level === item && styles.evolutionSelected]}><Text style={[styles.evolutionNumber, level === item && styles.evolutionTextSelected]}>0{i + 1}</Text><Text style={[styles.evolutionText, level === item && styles.evolutionTextSelected]}>{evolutionPolicy[item].label.toUpperCase()}</Text></Pressable>)}</View>
-      <View style={styles.selectorHeader}><Text style={styles.selectorLabel}>CHOOSE YOUR LEGEND</Text><Text style={styles.count}>0{selected + 1} <Text style={styles.muted}>/ 03</Text></Text></View>
-      <View style={styles.selector}>{cards.map((item, i) => <Pressable accessibilityRole="button" accessibilityLabel={`Inspect ${item.name}`} accessibilityState={{ selected: i === selected }} key={item.id} onPress={() => setSelected(i)} style={[styles.choice, i === selected && { borderColor: item.accent }]}>
-        <ImageBackground source={item.background} resizeMode="cover" style={styles.choiceImage} imageStyle={{ opacity: .48 }}><LinearGradient colors={['transparent', '#101315eF']} style={styles.choiceShade}><Text numberOfLines={1} style={[styles.choiceName, i === selected && { color: '#f9e5bb' }]}>{item.name}</Text><Text style={styles.choiceRarity}>{item.rarity}</Text></LinearGradient></ImageBackground>
-      </Pressable>)}</View>
+      <View style={styles.selectorHeader}><Text style={styles.selectorLabel}>CHOOSE YOUR LEGEND</Text><Text style={styles.count}>{String(selected + 1).padStart(2, '0')} <Text style={styles.muted}>/ {String(cards.length).padStart(2, '0')}</Text></Text></View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selector} contentContainerStyle={styles.selectorContent}>{cards.map((item, i) => <Pressable accessibilityRole="button" accessibilityLabel={`Inspect ${item.name}`} accessibilityState={{ selected: i === selected }} key={item.id} onPress={() => setSelected(i)} style={[styles.choice, { width: Math.max(95, (width - 60) / 3) }, i === selected && { borderColor: item.accent }]}>
+        <ImageBackground source={item.background} resizeMode="cover" style={styles.choiceImage} imageStyle={{ opacity: .48 }}><LinearGradient colors={['transparent', '#101315eF']} style={styles.choiceShade}><Text numberOfLines={1} style={[styles.choiceName, i === selected && { color: '#f9e5bb' }]}>{item.name}</Text></LinearGradient></ImageBackground>
+      </Pressable>)}</ScrollView>
       <Text style={styles.footer}>✦   AN ILLUSTRATED COLLECTION   ✦</Text>
     </SafeAreaView>
   </LinearGradient>;
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   evolutionTextSelected: { color: '#f1d69c' },
   cardSlot: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, justifyContent: 'center', alignItems: 'center' },
   selectorHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }, selectorLabel: { color: '#c2b496', fontSize: 9, letterSpacing: 1.8, fontWeight: '700' }, count: { color: '#d8c49f', fontFamily: 'serif', fontSize: 12 }, muted: { color: '#6c6d65' },
-  selector: { flexDirection: 'row', gap: 8, height: 59 }, choice: { flex: 1, borderWidth: 1, borderColor: '#494b42', borderRadius: 6, overflow: 'hidden' }, choiceImage: { flex: 1 }, choiceShade: { flex: 1, justifyContent: 'flex-end', padding: 7 }, choiceName: { color: '#c8c4b8', fontFamily: 'serif', fontSize: 10, fontWeight: '700' }, choiceRarity: { color: '#ac9a77', fontSize: 6, letterSpacing: 1, marginTop: 2 }, footer: { color: '#6d716b', fontSize: 8, letterSpacing: 2, textAlign: 'center', marginTop: 16, marginBottom: 12 },
+  selector: { flexGrow: 0, height: 59 }, selectorContent: { flexDirection: 'row', gap: 8 }, choice: { height: 59, borderWidth: 1, borderColor: '#494b42', borderRadius: 6, overflow: 'hidden' }, choiceImage: { flex: 1 }, choiceShade: { flex: 1, justifyContent: 'flex-end', padding: 7 }, choiceName: { color: '#c8c4b8', fontFamily: 'serif', fontSize: 10, fontWeight: '700' }, footer: { color: '#6d716b', fontSize: 8, letterSpacing: 2, textAlign: 'center', marginTop: 16, marginBottom: 12 },
 });
 
 

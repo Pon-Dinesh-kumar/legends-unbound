@@ -9,7 +9,9 @@ const cardImages = [
   sherlockScarfBase, ...sherlockScarfFrames,
   draculaCapeBase, ...draculaCapeFrames,
   require('../../assets/cards/shared/frame-legendary-v6.png'),
+  require('../../assets/cards/shared/frame-epic-v3.png'),
   require('../../assets/cards/shared/evolution-gem-active-v1.png'),
+  require('../../assets/cards/shared/evolution-gem-epic-v1.png'),
   require('../../assets/cards/shared/back-sherlock.png'),
 ];
 

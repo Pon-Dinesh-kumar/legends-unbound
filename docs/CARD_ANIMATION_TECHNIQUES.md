@@ -6,6 +6,10 @@ This is a reference for choosing and planning animation techniques in the [name-
 
 For each new card, plan **exactly three distinct card-specific animated pieces together before generating assets**. Record the visual purpose, rest pose, source coordinates, parent layer and attachment, foreground/background occlusion, motion path, timing, required masks and underpainting, expected mobile visibility, and fallback if isolation fails. Shared frame or title effects, gyro/parallax, moving an entire illustration, and opacity-only flashes do not count as the three pieces. All three pieces have the same registered rest appearance at every evolution: Origin is inside the frame and still; Awakened adds the same artwork's top/side frame break; only the selected, visible Unbound front unlocks card-specific motion and independent parallax. Respect reduced motion.
 
+Select ideas and techniques from each character’s personality, setting, pose and story. Avoid repeating scarf movement and prop glints as a default recipe. For female characters, assess whether flowing hair is visually appropriate and can be animated cleanly; hair is optional and cannot bypass the quality gate. Plan all three before any generation and create as many unique registered layers as needed, without reusing another card’s environment art. Measure the final runtime cost.
+
+Select ideas and techniques from each characterâ€™s personality, setting, pose and story. Avoid repeating scarf movement and prop glints as a default recipe. For female characters, assess whether flowing hair is visually appropriate and can be animated cleanly; hair is optional and cannot bypass the quality gate. Plan all three before any generation and create as many unique registered layers as needed, without reusing another cardâ€™s environment art. Measure the final runtime cost.
+
 Choose the technique per piece, not by a fixed template:
 
 | Technique | Current example | Good fit | Do not use it as a shortcut when |

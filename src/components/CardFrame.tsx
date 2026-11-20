@@ -9,8 +9,15 @@ import { Card } from '../types/card';
 import { Evolution, evolutions } from '../data/evolutions';
 
 const TitleMask = MaskedView as unknown as React.ComponentType<React.ComponentProps<typeof View> & { maskElement: React.ReactElement }>;
-const frameAsset = require('../../assets/cards/shared/frame-legendary-v6.png');
+const legendaryFrameAsset = require('../../assets/cards/shared/frame-legendary-v6.png');
+export const epicFrameAsset = require('../../assets/cards/shared/frame-epic-v3.png');
+const getFrameAsset = (rarity: Card['rarity']) => {
+  if (rarity === 'EPIC') return epicFrameAsset;
+  if (rarity === 'LEGENDARY') return legendaryFrameAsset;
+  throw new Error(`No ${rarity} border has been designed yet`);
+};
 const activeGemAsset = require('../../assets/cards/shared/evolution-gem-active-v1.png');
+const epicGemAsset = require('../../assets/cards/shared/evolution-gem-epic-v1.png');
 
 type FrameMotionStyle = StyleProp<AnimatedStyle<ViewStyle>>;
 
@@ -31,10 +38,10 @@ function SweepFeather({ children, direction }: { children: React.ReactNode; dire
   return <TitleMask style={StyleSheet.absoluteFill} maskElement={<LinearGradient colors={colors} locations={locations} start={start} end={end} style={StyleSheet.absoluteFill} />}>{children}</TitleMask>;
 }
 
-function FrameShine({ edgeSweepStyle, topSweepStyle }: { edgeSweepStyle: FrameMotionStyle; topSweepStyle: FrameMotionStyle }) {
+function FrameShine({ edgeSweepStyle, topSweepStyle, frameAsset, epic }: { edgeSweepStyle: FrameMotionStyle; topSweepStyle: FrameMotionStyle; frameAsset: number; epic: boolean }) {
   const frameUri = Platform.OS === 'web' ? Asset.fromModule(frameAsset).uri : undefined;
-  const sideSweep = <Animated.View style={[styles.edgeSweep, edgeSweepStyle]}><LinearGradient colors={['transparent', '#ffb72cbb', '#fffde8ff', '#ffb72cbb', 'transparent']} locations={[0, .3, .5, .7, 1]} style={StyleSheet.absoluteFill} /></Animated.View>;
-  const railSweep = <Animated.View style={[styles.topSweep, topSweepStyle]}><LinearGradient colors={['transparent', '#ffc64baa', '#fffef2ff', '#ffc64baa', 'transparent']} locations={[0, .3, .5, .7, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View>;
+  const sideSweep = <Animated.View style={[styles.edgeSweep, edgeSweepStyle]}><LinearGradient colors={epic ? ['transparent', '#b164ffbb', '#f8e9ffff', '#b164ffbb', 'transparent'] : ['transparent', '#ffb72cbb', '#fffde8ff', '#ffb72cbb', 'transparent']} locations={[0, .3, .5, .7, 1]} style={StyleSheet.absoluteFill} /></Animated.View>;
+  const railSweep = <Animated.View style={[styles.topSweep, topSweepStyle]}><LinearGradient colors={epic ? ['transparent', '#ad72ffaa', '#f9eaffff', '#ad72ffaa', 'transparent'] : ['transparent', '#ffc64baa', '#fffef2ff', '#ffc64baa', 'transparent']} locations={[0, .3, .5, .7, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View>;
   const effects = <><View style={[styles.edgeSweepClip, styles.leftSweepClip]}><SweepFeather direction="inward-left">{sideSweep}</SweepFeather></View><View style={[styles.edgeSweepClip, styles.rightSweepClip]}><SweepFeather direction="inward-right">{sideSweep}</SweepFeather></View><View style={styles.topSweepClip}><SweepFeather direction="ends"><SweepFeather direction="inward-top">{railSweep}</SweepFeather></SweepFeather></View><View style={styles.bottomSweepClip}><SweepFeather direction="ends"><SweepFeather direction="inward-bottom">{railSweep}</SweepFeather></SweepFeather></View></>;
   return Platform.OS === 'web' ? React.createElement('div', {
     'aria-hidden': true,
@@ -42,15 +49,17 @@ function FrameShine({ edgeSweepStyle, topSweepStyle }: { edgeSweepStyle: FrameMo
   }, effects) : <TitleMask style={StyleSheet.absoluteFill} maskElement={<Image source={frameAsset} resizeMode="stretch" style={styles.nameImage} />}>{effects}</TitleMask>;
 }
 
-export function CardFrame({ onLoad, onError, animated, edgeSweepStyle, topSweepStyle }: { onLoad: (layer: string) => void; onError: () => void; animated: boolean; edgeSweepStyle: FrameMotionStyle; topSweepStyle: FrameMotionStyle }) {
+export function CardFrame({ rarity, onLoad, onError, animated, edgeSweepStyle, topSweepStyle }: { rarity: Card['rarity']; onLoad: (layer: string) => void; onError: () => void; animated: boolean; edgeSweepStyle: FrameMotionStyle; topSweepStyle: FrameMotionStyle }) {
+  const frameAsset = getFrameAsset(rarity);
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
     <Image source={frameAsset} resizeMode="stretch" style={styles.frameImage} onLoad={() => onLoad('frame')} onError={onError} />
-    {animated && <View style={styles.frameImage}><FrameShine edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} /></View>}
+    {animated && rarity !== 'EPIC' && <View style={styles.frameImage}><FrameShine frameAsset={frameAsset} epic={false} edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} /></View>}
   </View>;
 }
 
 // Redraw only the integrated stat corners over the frame-breaking character.
-export function FrameStatCorners({ width }: { width: number }) {
+export function FrameStatCorners({ width, rarity }: { width: number; rarity: Card['rarity'] }) {
+  const frameAsset = getFrameAsset(rarity);
   const height = width * 1.5;
   const cropWidth = width * .27;
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
@@ -64,13 +73,13 @@ export function FrameStatCorners({ width }: { width: number }) {
 }
 
 // Small vector glints sit on the metal itself, without rectangular shadow layers.
-export function FrameSparkles({ width, sparkleStyles }: { width: number; sparkleStyles: StyleProp<AnimatedStyle<ViewStyle>>[] }) {
+export function FrameSparkles({ width, sparkleStyles, rarity }: { width: number; rarity: Card['rarity']; sparkleStyles: StyleProp<AnimatedStyle<ViewStyle>>[] }) {
   const size = Math.max(16, Math.min(30, width * .085));
   const points = [[.32, .035], [.68, .035], [.075, .925], [.925, .925]];
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
     {points.map(([x, y], index) => <Animated.View key={index} style={[{ position: 'absolute', left: width * x - size / 2, top: width * 1.5 * y - size / 2, width: size, height: size }, sparkleStyles[index]]}>
       <Svg width="100%" height="100%" viewBox="0 0 100 100">
-        <Path d="M50 0 Q56 42 100 50 Q56 56 50 100 Q44 56 0 50 Q44 44 50 0 Z" fill="#ffd564" />
+        <Path d="M50 0 Q56 42 100 50 Q56 56 50 100 Q44 56 0 50 Q44 44 50 0 Z" fill={rarity === 'EPIC' ? '#cf9aff' : '#ffd564'} />
         <Path d="M50 17 Q54 45 83 50 Q54 54 50 83 Q46 54 17 50 Q46 46 50 17 Z" fill="#fffbea" />
       </Svg>
     </Animated.View>)}
@@ -84,9 +93,9 @@ const crystalPulse = (phase: number, index: number, offset: number) => {
   return t * t * (3 - 2 * t);
 };
 
-function CrystalTwinkle({ gradientId }: { gradientId: string }) {
+function CrystalTwinkle({ gradientId, epic }: { gradientId: string; epic: boolean }) {
   return <Svg width="100%" height="100%" viewBox="0 0 100 100">
-    <Defs><RadialGradient id={gradientId} cx="50%" cy="50%" r="50%"><Stop offset="0" stopColor="#fffbd7" stopOpacity=".85" /><Stop offset=".42" stopColor="#ffdc74" stopOpacity=".35" /><Stop offset="1" stopColor="#ffc346" stopOpacity="0" /></RadialGradient></Defs>
+    <Defs><RadialGradient id={gradientId} cx="50%" cy="50%" r="50%"><Stop offset="0" stopColor={epic ? '#fff1ff' : '#fffbd7'} stopOpacity=".85" /><Stop offset=".42" stopColor={epic ? '#dca2ff' : '#ffdc74'} stopOpacity=".35" /><Stop offset="1" stopColor={epic ? '#a353ff' : '#ffc346'} stopOpacity="0" /></RadialGradient></Defs>
     <Circle cx="50" cy="50" r="50" fill={`url(#${gradientId})`} />
     <Path d="M50 1 C54 34 56 44 99 50 C56 56 54 66 50 99 C46 66 44 56 1 50 C44 44 46 34 50 1 Z" fill="#fff9da" />
     <Path d="M50 20 L53 47 L80 50 L53 53 L50 80 L47 53 L20 50 L47 47 Z" fill="#ffffff" />
@@ -94,7 +103,7 @@ function CrystalTwinkle({ gradientId }: { gradientId: string }) {
   </Svg>;
 }
 
-function GemShine({ side, index, phase }: { side: number; index: number; phase: SharedValue<number> }) {
+function GemShine({ side, index, phase, epic }: { side: number; index: number; phase: SharedValue<number>; epic: boolean }) {
   const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const sweep = useAnimatedStyle(() => {
     const p = phase.value * 1.7 - index * .25;
@@ -117,11 +126,11 @@ function GemShine({ side, index, phase }: { side: number; index: number; phase: 
   });
   const content = <>
     <Animated.View testID={`gem-shine-${index}`} style={[styles.gemSweep, sweep]}>
-      <LinearGradient colors={['transparent', '#fff3be88', '#fffef4ee', '#fff3be88', 'transparent']} locations={[0, .3, .5, .7, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={epic ? ['transparent', '#e8c2ff88', '#fff5ffee', '#e8c2ff88', 'transparent'] : ['transparent', '#fff3be88', '#fffef4ee', '#fff3be88', 'transparent']} locations={[0, .3, .5, .7, 1]} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} />
     </Animated.View>
     <Animated.View style={[styles.gemGlint, glint]}><Svg width="100%" height="100%" viewBox="0 0 100 100"><Path d="M50 0 Q56 43 100 50 Q56 56 50 100 Q44 56 0 50 Q44 44 50 0 Z" fill="#fffbea" /></Svg></Animated.View>
-    <Animated.View testID={`gem-twinkle-${index}-a`} style={[styles.crystalTwinkleA, twinkleA]}><CrystalTwinkle gradientId={`crystal${uid}a`} /></Animated.View>
-    <Animated.View testID={`gem-twinkle-${index}-b`} style={[styles.crystalTwinkleB, twinkleB]}><CrystalTwinkle gradientId={`crystal${uid}b`} /></Animated.View>
+    <Animated.View testID={`gem-twinkle-${index}-a`} style={[styles.crystalTwinkleA, twinkleA]}><CrystalTwinkle gradientId={`crystal${uid}a`} epic={epic} /></Animated.View>
+    <Animated.View testID={`gem-twinkle-${index}-b`} style={[styles.crystalTwinkleB, twinkleB]}><CrystalTwinkle gradientId={`crystal${uid}b`} epic={epic} /></Animated.View>
   </>;
   return Platform.OS === 'web' ? React.createElement('div', {
     'aria-hidden': true,
@@ -129,7 +138,8 @@ function GemShine({ side, index, phase }: { side: number; index: number; phase: 
   }, content) : <TitleMask style={StyleSheet.absoluteFill} maskElement={<Svg width="100%" height="100%" viewBox="0 0 100 100"><Path d="M50 6 L94 50 L50 94 L6 50 Z" fill="#fff" /></Svg>}>{content}</TitleMask>;
 }
 
-export function EvolutionBadge({ level, animated, glowStyle, gemPhase, width, onLoad, onError }: { level: Evolution; animated: boolean; glowStyle: StyleProp<AnimatedStyle<ViewStyle>>; gemPhase: SharedValue<number>; width: number; onLoad: (layer: string) => void; onError: () => void }) {
+export function EvolutionBadge({ rarity, level, animated, glowStyle, gemPhase, width, onLoad, onError }: { rarity: Card['rarity']; level: Evolution; animated: boolean; glowStyle: StyleProp<AnimatedStyle<ViewStyle>>; gemPhase: SharedValue<number>; width: number; onLoad: (layer: string) => void; onError: () => void }) {
+  const frameAsset = getFrameAsset(rarity);
   const uid = React.useId().replace(/[^a-zA-Z0-9_-]/g, '');
   const filled = evolutions.indexOf(level) + 1;
   const side = width * .105;
@@ -141,9 +151,9 @@ export function EvolutionBadge({ level, animated, glowStyle, gemPhase, width, on
       const clipId = `socket${uid}${index}`;
       return <View key={item} style={[styles.diamondMount, { width: side, height: side, left, top }]}>
         {index < filled ? <>
-          <Image source={activeGemAsset} resizeMode="contain" style={styles.nameImage} onLoad={() => onLoad('gem')} onError={onError} />
-          {animated && <Animated.View style={[StyleSheet.absoluteFill, glowStyle]}><Svg width="100%" height="100%" viewBox="0 0 100 100"><Path d="M50 12 L87 49 L50 49 Z" fill="#fffef0" opacity=".9" /><Path d="M13 51 L50 51 L50 87 Z" fill="#ffdd75" opacity=".65" /><Path d="M50 20 L53 45 L78 50 L53 54 L50 80 L47 54 L22 50 L47 45 Z" fill="#fffdf0" opacity=".8" /></Svg></Animated.View>}
-          {animated && <GemShine side={side} index={index} phase={gemPhase} />}
+          <Image source={rarity === 'EPIC' ? epicGemAsset : activeGemAsset} resizeMode="contain" style={styles.nameImage} onLoad={() => onLoad('gem')} onError={onError} />
+          {animated && <Animated.View style={[StyleSheet.absoluteFill, glowStyle]}><Svg width="100%" height="100%" viewBox="0 0 100 100"><Path d="M50 12 L87 49 L50 49 Z" fill="#fffef0" opacity=".9" /><Path d="M13 51 L50 51 L50 87 Z" fill={rarity === 'EPIC' ? '#dda8ff' : '#ffdd75'} opacity=".65" /><Path d="M50 20 L53 45 L78 50 L53 54 L50 80 L47 54 L22 50 L47 45 Z" fill="#fffdf0" opacity=".8" /></Svg></Animated.View>}
+          {animated && <GemShine side={side} index={index} phase={gemPhase} epic={rarity === 'EPIC'} />}
         </> : <Svg width="100%" height="100%" viewBox="0 0 100 100">
           <Defs><ClipPath id={clipId}><Path d="M50 3 L97 50 L50 97 L3 50 Z" /></ClipPath></Defs>
           <SvgImage href={frameAsset} x={(-width * .01 - left) / side * 100} y={(-width * 1.5 * .01 - top) / side * 100} width={width * 1.02 / side * 100} height={width * 1.5 * 1.02 / side * 100} preserveAspectRatio="none" clipPath={`url(#${clipId})`} />

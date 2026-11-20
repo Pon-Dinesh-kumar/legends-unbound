@@ -1,7 +1,7 @@
 export type Card = {
-  id: 'tarzan' | 'sherlock' | 'dracula';
+  id: 'tarzan' | 'sherlock' | 'dracula' | 'jane';
   name: string; subtitle: string; energy: number; power: number;
-  rarity: 'LEGENDARY' | 'EPIC'; accent: string; glow: string;
+  rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY'; accent: string; glow: string;
   description: string; titleImage: number; background: number; character: number; foreground: number; effects: number;
 };
 
