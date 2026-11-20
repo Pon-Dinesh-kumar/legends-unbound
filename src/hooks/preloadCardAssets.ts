@@ -3,13 +3,16 @@ import { Image, Platform } from 'react-native';
 import { cards } from '../data/cards';
 import { sherlockScarfBase, sherlockScarfFrames } from '../data/sherlockScarf';
 import { draculaCapeBase, draculaCapeFrames } from '../data/draculaCape';
+import { saborEarUnderpaint } from '../data/sabor';
 
 const cardImages = [
   ...cards.flatMap(card => [card.background, card.character, card.foreground, card.effects, card.titleImage]),
   sherlockScarfBase, ...sherlockScarfFrames,
   draculaCapeBase, ...draculaCapeFrames,
+  saborEarUnderpaint,
   require('../../assets/cards/shared/frame-legendary-v6.png'),
   require('../../assets/cards/shared/frame-epic-v3.png'),
+  require('../../assets/cards/shared/frame-rare-v1.png'),
   require('../../assets/cards/shared/evolution-gem-active-v1.png'),
   require('../../assets/cards/shared/evolution-gem-epic-v1.png'),
   require('../../assets/cards/shared/back-sherlock.png'),

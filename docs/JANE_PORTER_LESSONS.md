@@ -1,5 +1,8 @@
 # Jane Porter: lessons for the name-to-card workflow
 
+- Choose character scale and composition for the source and unique identity of each card; do not default to an oversized character, and keep the setting visible where it serves the scene.
+- Plan the actual frame-break silhouette and depth around Cost and Power badges before generating art; avoid badge collisions and do not hide them with a foreground overlay that cuts the character apart. Check rest, motion and tilt extremes.
+
 These lessons capture user decisions and observed implementation failures. The [pipeline](CARD_GENERATION_PIPELINE.md) is the execution checklist; this file adds concrete examples. Jane's [production record](JANE_PORTER_PLAN.md) remains the source for her incomplete quality status and asset provenance.
 
 ## Research, identity and visual design
@@ -19,7 +22,7 @@ These lessons capture user decisions and observed implementation failures. The [
 
 ## Rarity, interaction and verification
 
-- Four rarities are Common, Rare, Epic and Legendary. Rarity belongs to a shared frame and its integrated gem treatment, never unique character art or per-card frames. Keep the cost and power badges in their existing positions. Legendary remains the approved animated gold; Epic uses the shared clean saturated purple frame without white specks, pale areas, frame sparkles or frame sweeps, and has purple evolution gems. Common and Rare are not yet designed.
+- Four rarities are Common, Rare, Epic and Legendary. Rarity belongs to a shared frame and its integrated gem treatment, never unique character art or per-card frames. Keep the cost and power badges in their existing positions. Legendary remains the approved animated gold; Epic uses the shared clean saturated purple frame without white specks, pale areas, frame sparkles or frame sweeps, and has purple evolution gems. Rare now uses a shared simpler amber-yellow static frame and static gems; Common is not yet designed.
 - The same artwork, title and rarity border serve all evolutions. Origin clips everything inside; Awakened allows the character to break the top and sides; Unbound adds parallax and the three card-specific tracks. The environment stays inside, and the bottom quarter of the character stays behind the border. No character-wide shimmer or ambient whole-picture motion.
 - Preload all required assets and fail/retry honestly. Verify visual composition, title, badges, three markers, interaction, switching, flipping, reduced motion and animated loops in the browser at desktop and phone card sizes. Record evidence and known limitations. Real Android and iOS performance, sensors and masking need physical devices; Jane and the existing mobile crash/glitch have not passed those checks. Do not imply that browser tests prove device behavior.
 - When asked for a new card, execute the pipeline end to end without treating the prior card's pose, scene, animation selection or frame color as the next character's design. Never call a card complete just because three tracks are present. Record unresolved gates and do not claim the manual workflow is already an automated generator.

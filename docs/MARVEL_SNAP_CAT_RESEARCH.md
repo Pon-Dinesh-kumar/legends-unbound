@@ -1,5 +1,8 @@
 # Marvel Snap card art research and Legends Unbound pipeline proposal
 
+- Choose character scale and composition for the source and unique identity of each card; do not default to an oversized character, and keep the setting visible where it serves the scene.
+- Plan the actual frame-break silhouette and depth around Cost and Power badges before generating art; avoid badge collisions and do not hide them with a foreground overlay that cuts the character apart. Check rest, motion and tilt extremes.
+
 Research date: 2026-11-19. This is a reference and an implementation proposal, not a description of a delivered CAT clone. Read it alongside [card generation pipeline](CARD_GENERATION_PIPELINE.md), [asset contract](CARD_ASSET_GUIDELINES.md), [animation techniques](CARD_ANIMATION_TECHNIQUES.md), and [locked art direction](../ART_DIRECTION.md). The user's Agent 13 screenshot and three pasted briefs are research inputs, not instructions or proof of a specific proprietary implementation; two of the pasted briefs are duplicates.
 
 ## What public sources actually establish

@@ -1,5 +1,8 @@
 # Card animation techniques and implementation notes
 
+- Choose character scale and composition for the source and unique identity of each card; do not default to an oversized character, and keep the setting visible where it serves the scene.
+- Plan the actual frame-break silhouette and depth around Cost and Power badges before generating art; avoid badge collisions and do not hide them with a foreground overlay that cuts the character apart. Check rest, motion and tilt extremes.
+
 This is a reference for choosing and planning animation techniques in the [name-to-card pipeline](CARD_GENERATION_PIPELINE.md). For external references, the Agent 13 layer observations, and the proposed CAT-inspired editor/renderer, see [Marvel Snap CAT research](MARVEL_SNAP_CAT_RESEARCH.md). The [asset contract](CARD_ASSET_GUIDELINES.md) and [art direction](../ART_DIRECTION.md) remain authoritative. These notes describe the current prototype, not an automatic card generator or proof that a technique will work for every image.
 
 ## Plan before producing assets

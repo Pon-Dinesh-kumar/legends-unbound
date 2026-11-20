@@ -1,5 +1,8 @@
 # Public-domain character research for a name-only card
 
+- Choose character scale and composition for the source and unique identity of each card; do not default to an oversized character, and keep the setting visible where it serves the scene.
+- Plan the actual frame-break silhouette and depth around Cost and Power badges before generating art; avoid badge collisions and do not hide them with a foreground overlay that cuts the character apart. Check rest, motion and tilt extremes.
+
 This is the required first research step for the [name-to-card pipeline](CARD_GENERATION_PIPELINE.md). It is a workflow for documenting sources and uncertainty, not an automatic legal clearance or a substitute for checking the intended market. Do not generate character art or animation assets until the identity, source version, visual boundaries and three animation plans are documented.
 
 ## 1. Identify the original work and character

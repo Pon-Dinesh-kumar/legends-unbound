@@ -11,8 +11,10 @@ import { Evolution, evolutions } from '../data/evolutions';
 const TitleMask = MaskedView as unknown as React.ComponentType<React.ComponentProps<typeof View> & { maskElement: React.ReactElement }>;
 const legendaryFrameAsset = require('../../assets/cards/shared/frame-legendary-v6.png');
 export const epicFrameAsset = require('../../assets/cards/shared/frame-epic-v3.png');
+export const rareFrameAsset = require('../../assets/cards/shared/frame-rare-v1.png');
 const getFrameAsset = (rarity: Card['rarity']) => {
   if (rarity === 'EPIC') return epicFrameAsset;
+  if (rarity === 'RARE') return rareFrameAsset;
   if (rarity === 'LEGENDARY') return legendaryFrameAsset;
   throw new Error(`No ${rarity} border has been designed yet`);
 };
@@ -53,7 +55,7 @@ export function CardFrame({ rarity, onLoad, onError, animated, edgeSweepStyle, t
   const frameAsset = getFrameAsset(rarity);
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
     <Image source={frameAsset} resizeMode="stretch" style={styles.frameImage} onLoad={() => onLoad('frame')} onError={onError} />
-    {animated && rarity !== 'EPIC' && <View style={styles.frameImage}><FrameShine frameAsset={frameAsset} epic={false} edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} /></View>}
+    {animated && rarity === 'LEGENDARY' && <View style={styles.frameImage}><FrameShine frameAsset={frameAsset} epic={false} edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} /></View>}
   </View>;
 }
 
@@ -167,7 +169,7 @@ export function CardDetails({ card, width, titleStyle, titleShineStyle, interact
   const titleUri = Platform.OS === 'web' ? Asset.fromModule(card.titleImage).uri : undefined;
   const shine = <><Animated.View testID="title-idle-shine" style={[styles.titleShine, titleShineStyle]}><LinearGradient colors={['transparent', '#fff5d6bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View><Animated.View testID="title-tilt-shine" style={[styles.titleShine, interactiveTitleShineStyle]}><LinearGradient colors={['transparent', '#fff8e0dd', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></>;
   return <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-    <Animated.View style={[styles.nameArt, insideFrame && styles.nameArtInside, titleStyle]}>
+    <Animated.View style={[styles.nameArt, insideFrame && styles.nameArtInside, card.id === 'sabor' && styles.saborNameArt, titleStyle]}>
       <Image source={card.titleImage} resizeMode="contain" style={styles.nameImage} onLoad={() => onLoad('title')} onError={onError} />
       {animated && (Platform.OS === 'web' ? React.createElement('div', {
         'aria-hidden': true,
@@ -202,6 +204,8 @@ const styles = StyleSheet.create({
   statText: { color: '#fffdf7', fontFamily: 'serif', fontWeight: '700', includeFontPadding: false, textShadowColor: '#151018', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
   nameArt: { position: 'absolute', width: '118%', height: '30%', bottom: '-2%', alignSelf: 'center', justifyContent: 'center', alignItems: 'center' },
   nameArtInside: { width: '94%', height: '25%', bottom: '1%' },
+  // Keep the larger carved Sabor wordmark clear of the lower Rare rail.
+  saborNameArt: { bottom: '3%' },
   nameImage: { width: '100%', height: '100%' },
   titleShine: { position: 'absolute', width: '30%', height: '200%', top: '-50%' },
 });

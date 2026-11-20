@@ -3,7 +3,7 @@ import { AppState, Image, Platform, Pressable, StyleSheet, Text, View } from 're
 import MaskedView from '@react-native-masked-view/masked-view';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { Easing, SharedValue, useAnimatedStyle, useDerivedValue, useReducedMotion, useSharedValue, cancelAnimation, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, SharedValue, useAnimatedStyle, useDerivedValue, useReducedMotion, useSharedValue, cancelAnimation, withDelay, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { Card } from '../types/card';
 import { CardDetails, CardFrame, EvolutionBadge, FrameSparkles, FrameStatCorners } from './CardFrame';
 import { sherlockScarfBase, sherlockScarfFrames } from '../data/sherlockScarf';
@@ -14,6 +14,8 @@ import { TarzanWaterfall } from './TarzanWaterfall';
 import { TarzanCharacter } from './TarzanCharacter';
 import { SherlockLens } from './SherlockLens';
 import { JaneScarf } from './JaneScarf';
+import { SaborCharacter } from './SaborCharacter';
+import { SaborSunrays } from './SaborSunrays';
 
 const limit = (n: number) => { 'worklet'; return Math.max(-1, Math.min(1, n)); };
 const twinkle = (phase: number, center: number) => { 'worklet'; const t = Math.max(0, 1 - Math.abs(phase - center) / .065); return t * t * (3 - 2 * t); };
@@ -30,9 +32,10 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   const dragX = useSharedValue(0), dragY = useSharedValue(0), shimmer = useSharedValue(0);
   const scarfPhase = useSharedValue(0), tarzanClothPhase = useSharedValue(0), lensPhase = useSharedValue(0);
   const janeScarfPhase = useSharedValue(0), janeHairPhase = useSharedValue(0);
+  const saborTailPhase = useSharedValue(0), saborEarPhase = useSharedValue(0), saborRaysPhase = useSharedValue(0);
   const breath = useSharedValue(0), sparklePhase = useSharedValue(0), gemPhase = useSharedValue(0), reveal = useSharedValue(0);
   useEffect(() => {
-    if (selected && frameMotionEnabled && !isBack) {
+    if (selected && frameMotionEnabled && !isBack && card.rarity !== 'RARE') {
       breath.value = withRepeat(withTiming(1, { duration: 3200, easing: Easing.inOut(Easing.sin) }), -1, true);
       sparklePhase.value = 0;
       sparklePhase.value = withRepeat(withTiming(1, { duration: 11000, easing: Easing.linear }), -1, false);
@@ -44,12 +47,12 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
       breath.value = 0; sparklePhase.value = 0; gemPhase.value = 0; reveal.value = 0;
     }
     return () => { cancelAnimation(breath); cancelAnimation(sparklePhase); cancelAnimation(gemPhase); cancelAnimation(reveal); };
-  }, [selected, frameMotionEnabled, isBack, card.id, level, breath, sparklePhase, gemPhase, reveal]);
+  }, [selected, frameMotionEnabled, isBack, card.id, card.rarity, level, breath, sparklePhase, gemPhase, reveal]);
   useEffect(() => {
-    if (selected && frameMotionEnabled) shimmer.value = withRepeat(withTiming(1, { duration: 5500, easing: Easing.inOut(Easing.sin) }), -1, true);
+    if (selected && frameMotionEnabled && (card.rarity === 'LEGENDARY' || motionEnabled)) shimmer.value = withRepeat(withTiming(1, { duration: 5500, easing: Easing.inOut(Easing.sin) }), -1, true);
     else { cancelAnimation(shimmer); shimmer.value = 0; }
     return () => { cancelAnimation(shimmer); };
-  }, [selected, frameMotionEnabled, shimmer]);
+  }, [selected, frameMotionEnabled, card.rarity, motionEnabled, shimmer]);
   useEffect(() => {
     if ((card.id === 'sherlock' || card.id === 'dracula') && selected && !isBack && motionEnabled) {
       scarfPhase.value = withRepeat(withTiming(2, { duration: 5000, easing: Easing.inOut(Easing.sin) }), -1, true);
@@ -60,7 +63,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     return () => { cancelAnimation(scarfPhase); };
   }, [card.id, selected, isBack, motionEnabled, scarfPhase]);
   useEffect(() => {
-    if (card.id !== 'tarzan' && card.id !== 'sherlock' && card.id !== 'jane') return;
+    if (card.id !== 'tarzan' && card.id !== 'sherlock' && card.id !== 'jane' && card.id !== 'sabor') return;
     const listener = AppState.addEventListener('change', state => setAppForeground(state === 'active'));
     return () => listener.remove();
   }, [card.id]);
@@ -94,6 +97,18 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     } else { cancelAnimation(janeHairPhase); janeHairPhase.value = 0; }
     return () => { cancelAnimation(janeHairPhase); };
   }, [card.id, selected, isBack, motionEnabled, appForeground, janeHairPhase]);
+  useEffect(() => {
+    if (card.id === 'sabor' && selected && !isBack && motionEnabled && appForeground) {
+      saborTailPhase.value = withRepeat(withTiming(Math.PI * 2, { duration: 7600, easing: Easing.linear }), -1, false);
+      saborEarPhase.value = withRepeat(withSequence(
+        withDelay(6000, withTiming(1, { duration: 900, easing: Easing.inOut(Easing.sin) })),
+        withTiming(0, { duration: 900, easing: Easing.inOut(Easing.sin) }),
+        withDelay(2700, withTiming(0, { duration: 0 })),
+      ), -1, false);
+      saborRaysPhase.value = withRepeat(withTiming(1, { duration: 8500, easing: Easing.inOut(Easing.sin) }), -1, true);
+    } else { cancelAnimation(saborTailPhase); cancelAnimation(saborEarPhase); cancelAnimation(saborRaysPhase); saborTailPhase.value = 0; saborEarPhase.value = 0; saborRaysPhase.value = 0; }
+    return () => { cancelAnimation(saborTailPhase); cancelAnimation(saborEarPhase); cancelAnimation(saborRaysPhase); };
+  }, [card.id, selected, isBack, motionEnabled, appForeground, saborTailPhase, saborEarPhase, saborRaysPhase]);
   useEffect(() => { dragX.value = 0; dragY.value = 0; }, [level, reducedMotion, dragX, dragY]);
   const pan = Gesture.Pan().enabled(tiltEnabled).onUpdate(e => {
     dragX.value = limit(e.translationX / (width * .20));
@@ -115,9 +130,15 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   const cardStyle = useAnimatedStyle(() => ({ transform: [{ perspective: 2400 }, { rotateX: `${rotationX.value}deg` }, { rotateY: `${rotationY.value}deg` }] }));
   const frontVisibility = useAnimatedStyle(() => ({ opacity: Math.cos(rotationY.value * Math.PI / 180) >= 0 ? 1 : 0 }));
   const backVisibility = useAnimatedStyle(() => ({ opacity: Math.cos(rotationY.value * Math.PI / 180) < 0 ? 1 : 0 }));
-  const backStyle = useAnimatedStyle(() => ({ transform: [{ scale: motionEnabled ? 1.16 : 1.08 }, { translateX: -tiltHorizontal.value * 12 }, { translateY: -tiltVertical.value * 10 }] }));
-  const heroStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 16 }, { translateY: tiltVertical.value * 13 }, { scale: frameBreak ? 1.08 : 1 }] }));
-  const frontStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 26 }, { translateY: tiltVertical.value * 22 }, { scale: motionEnabled ? 1.16 : 1.08 }] }));
+  // Keep the same resting crop at every evolution. Size-aware overscan covers
+  // the existing parallax travel without an extra Unbound-only zoom or gaps.
+  const artWidth = width - 10;
+  const backgroundScale = (artWidth + 4) / (artWidth - 24);
+  const foregroundScale = Math.max(1.08, (artWidth + 4) / (artWidth + 20 - 52));
+  const backStyle = useAnimatedStyle(() => ({ transform: [{ scale: backgroundScale }, { translateX: -tiltHorizontal.value * 12 }, { translateY: -tiltVertical.value * 10 }] }));
+  // Keep Sabor's outward tail clear of Cost when the card is tilted left.
+  const heroStyle = useAnimatedStyle(() => ({ transform: [{ translateX: card.id === 'sabor' ? Math.max(-8, tiltHorizontal.value * 16) + width * .04 : tiltHorizontal.value * 16 }, { translateY: tiltVertical.value * 13 + (card.id === 'sabor' && frameBreak ? width * 1.5 * .105 : 0) }, { scale: (frameBreak ? 1.08 : 1) * (card.id === 'sabor' ? .94 : 1) }] }));
+  const frontStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 26 }, { translateY: tiltVertical.value * 22 }, { scale: foregroundScale }] }));
   const titleStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 7 }, { translateY: tiltVertical.value * 5 }] }));
   const cardHeight = width * 1.5;
   const scarfFrame1 = useAnimatedStyle(() => ({ opacity: Math.min(1, scarfPhase.value) }));
@@ -151,7 +172,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
       <Animated.View style={[StyleSheet.absoluteFill, scarfFrame1]}><Image source={draculaCapeFrames[1]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-1')} onError={onError} /></Animated.View>
       <Animated.View style={[StyleSheet.absoluteFill, scarfFrame2]}><Image source={draculaCapeFrames[2]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-2')} onError={onError} /></Animated.View>
     </Animated.View>}
-    {card.id === 'tarzan' ? <TarzanCharacter source={card.character} phase={tarzanClothPhase} onLoad={() => onLoad('character')} onError={onError} /> : card.id === 'jane' && showUpperDetails ? <JaneScarf source={card.character} phase={janeScarfPhase} hairPhase={janeHairPhase} active={motionEnabled && selected && !isBack && appForeground} onLoad={() => onLoad('character')} onError={onError} /> : <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.id === 'dracula' ? draculaCapeBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />}
+    {card.id === 'tarzan' ? <TarzanCharacter source={card.character} phase={tarzanClothPhase} onLoad={() => onLoad('character')} onError={onError} /> : card.id === 'jane' && showUpperDetails ? <JaneScarf source={card.character} phase={janeScarfPhase} hairPhase={janeHairPhase} active={motionEnabled && selected && !isBack && appForeground} onLoad={() => onLoad('character')} onError={onError} /> : card.id === 'sabor' && showUpperDetails ? <SaborCharacter source={card.character} tailPhase={saborTailPhase} earPhase={saborEarPhase} active={motionEnabled && selected && !isBack && appForeground} onLoad={onLoad} onError={onError} /> : <Image source={card.id === 'sherlock' ? sherlockScarfBase : card.id === 'dracula' ? draculaCapeBase : card.character} style={styles.image} resizeMode="contain" onLoad={() => onLoad('character')} onError={onError} />}
     {card.id === 'sherlock' && showUpperDetails && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} />}
     {card.id === 'jane' && showUpperDetails && motionEnabled && selected && !isBack && appForeground && <SherlockLens width={heroWidth} height={heroHeight} phase={lensPhase} bounds={[124, 530, 185, 175]} subtleBoost />}
     {card.id === 'sherlock' && (Platform.OS === 'web' ? React.createElement('div', {
@@ -163,17 +184,17 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     <Animated.View accessible accessibilityLabel={`${card.name}, ${evolutionPolicy[level].label}, level ${level === 'origin' ? 1 : level === 'awakened' ? 2 : 3} of 3, ${isBack ? 'card back' : 'card front'}.${tiltEnabled ? ' Drag to tilt.' : ''}`} style={[{ width, height: width * 1.5 }, cardStyle]}>
     <Animated.View pointerEvents="none" style={[styles.face, frontVisibility]}>
     <FrameInterior>
-        <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} />{card.id === 'tarzan' && <TarzanWaterfall source={card.background} width={width} active={motionEnabled && selected && !isBack} onError={onError} />}</Animated.View></View>
-        <View pointerEvents="none" style={styles.artWindow}><Animated.View style={[styles.overlay, frontStyle]}><Image source={card.foreground} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('foreground')} onError={onError} /><View style={[StyleSheet.absoluteFill, { opacity: .8 }]}><Image source={card.effects} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('effects')} onError={onError} /></View></Animated.View></View>
+        <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View testID="card-background-layer" style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} />{card.id === 'tarzan' && <TarzanWaterfall source={card.background} width={width} active={motionEnabled && selected && !isBack} onError={onError} />}{card.id === 'sabor' && <SaborSunrays source={card.background} phase={saborRaysPhase} />}</Animated.View></View>
+        <View pointerEvents="none" style={styles.artWindow}><Animated.View testID="card-foreground-layer" style={[styles.overlay, frontStyle]}><Image source={card.foreground} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('foreground')} onError={onError} /><View style={[StyleSheet.absoluteFill, { opacity: .8 }]}><Image source={card.effects} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('effects')} onError={onError} /></View></Animated.View></View>
         {motionEnabled && <View pointerEvents="none" style={styles.lightClip}><Animated.View testID="background-idle-shine" style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d4aa', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View><Animated.View testID="background-tilt-shine" style={[styles.shine, interactiveShineStyle]}><LinearGradient colors={['transparent', '#fff7d4bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>}
         {frameBreak ? <View pointerEvents="none" style={[styles.lowerHeroClip, { top: cardHeight * .75 }]}>{renderHero(-7, -cardHeight * .75 - 7, width + 14, cardHeight + 7, false)}</View> : <View pointerEvents="none" style={styles.artWindow}>{renderHero(8, cardHeight * .075, width - 26, cardHeight * .89)}</View>}
     </FrameInterior>
     <CardFrame rarity={card.rarity} onLoad={onLoad} onError={onError} animated={frameMotionEnabled && selected && !isBack} edgeSweepStyle={edgeSweepStyle} topSweepStyle={topSweepStyle} />
-    {card.rarity !== 'EPIC' && frameMotionEnabled && selected && !isBack && <FrameSparkles rarity={card.rarity} width={width} sparkleStyles={[sparkle1, sparkle2, sparkle3, sparkle4]} />}
+    {card.rarity === 'LEGENDARY' && frameMotionEnabled && selected && !isBack && <FrameSparkles rarity={card.rarity} width={width} sparkleStyles={[sparkle1, sparkle2, sparkle3, sparkle4]} />}
     {frameBreak && <View pointerEvents="none" style={[styles.heroClip, { bottom: cardHeight * .25 }]}>{renderHero(53, 53)}</View>}
     <FrameStatCorners width={width} rarity={card.rarity} />
     <CardDetails card={card} width={width} titleStyle={titleStyle} titleShineStyle={titleShineStyle} interactiveTitleShineStyle={interactiveTitleShineStyle} insideFrame={!frameBreak} animated={motionEnabled} onLoad={onLoad} onError={onError} />
-    <EvolutionBadge rarity={card.rarity} level={level} animated={frameMotionEnabled && selected && !isBack} glowStyle={badgeGlowStyle} gemPhase={gemPhase} width={width} onLoad={onLoad} onError={onError} />
+    <EvolutionBadge rarity={card.rarity} level={level} animated={card.rarity !== 'RARE' && frameMotionEnabled && selected && !isBack} glowStyle={badgeGlowStyle} gemPhase={gemPhase} width={width} onLoad={onLoad} onError={onError} />
     </Animated.View>
     <Animated.View pointerEvents="none" style={[styles.face, styles.backFace, backVisibility]}>
       <Image source={require('../../assets/cards/shared/back-sherlock.png')} style={styles.image} resizeMode="cover" onLoad={() => onLoad('back')} onError={onError} />
