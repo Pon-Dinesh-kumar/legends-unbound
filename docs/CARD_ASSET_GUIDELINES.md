@@ -107,3 +107,7 @@ The renderer should derive readiness from each package's actual required assets,
 ## Animation-first asset gate
 
 Before approving final base-card generation, produce and validate motion-ready studies for all three distinct, character-specific tracks. Include the registered moving pieces, masks, hidden/underpaint surfaces, rest appearance, anchors, occlusion, intended motion range and preload graph. Generate as many additional images as needed, with no preset image count. Capture each study in motion at actual card size and check the title and frame do not conceal it. If a track fails, revise the composition or technique and repeat the gate; a written idea or changing code value is not sufficient. Design the final shared base around the validated three-track layer plan. Use the full planner and evidence table in CARD_GENERATION_PIPELINE.md.
+
+## Creative choices and future titles
+
+For each new card, let the original character and story determine pose, camera, framing, scale, palette and lighting; sunlight is allowed when appropriate, never mandatory or forbidden. Explore multiple composition and motion alternatives, compare them against existing cards, and select the ideas and techniques that suit this card. Preserve the shared runtime frame and evolution mechanics. Future title assets should express the character with convincing sculpted 3D depth and remain legible at phone size; existing accepted titles do not need a retrofit.

@@ -63,3 +63,7 @@ This is suitable only when a movable region can be cut out over genuine transpar
 4. Run relevant type/build and behavior checks and record what was tested. Check actual device frame pacing, memory, loading, sensors and masking on representative Android and iOS hardware; a browser screenshot, synthetic sensor event or passing mathematical handoff check does not establish native appearance, seamlessness or performance.
 
 The existing browser checks exercised Tarzan's evolution gating, flip, reduced motion and sample handoffs. The current waterfall has not yet been verified on physical Android or iOS hardware. Sherlock, Dracula and Tarzan remain incomplete against the three-piece standard; their existing prototypes and the other proposed pieces require the applicable quality gates.
+
+## Open-ended technique selection
+
+For every new character, brainstorm multiple story-specific motion concepts, compare them with existing cards, and record why the chosen three best serve the character. Explore any feasible approach, including custom masks, weighted rigs, authored frames, sprite sheets, local simulation, light interaction, procedural motion and combinations; no prior technique is mandatory or forbidden merely because it succeeded elsewhere. Establish the required motion-ready layers and underpaint before final base approval, and test full loops, phone-size visibility and device cost. Korak is a user-praised example of variety in color, pose and motion, not a recipe for the next card.
