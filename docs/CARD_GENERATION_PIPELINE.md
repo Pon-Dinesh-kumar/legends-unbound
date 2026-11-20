@@ -1,6 +1,14 @@
 # Card generation pipeline: name to validated card
 
-This is the required production workflow when a request supplies only a character name. Read [the locked art direction](../ART_DIRECTION.md), [asset contract](CARD_ASSET_GUIDELINES.md), [animation techniques and implementation notes](CARD_ANIMATION_TECHNIQUES.md), and [Marvel Snap CAT research and our proposed pipeline improvements](MARVEL_SNAP_CAT_RESEARCH.md) first. These instructions describe the workflow to carry out, not an assertion that this repository already has an automated generator, generic manifest renderer, validator, or device farm. Those pieces are future work; until then perform the steps explicitly, document evidence, and be candid about anything not verified.
+This is the required production workflow when a request supplies only a character name. Read [the locked art direction](../ART_DIRECTION.md), [public-domain character research workflow](PUBLIC_DOMAIN_CHARACTER_RESEARCH.md), [asset contract](CARD_ASSET_GUIDELINES.md), [animation techniques and implementation notes](CARD_ANIMATION_TECHNIQUES.md), and [Marvel Snap CAT research and our proposed pipeline improvements](MARVEL_SNAP_CAT_RESEARCH.md) first. These instructions describe the workflow to carry out, not an assertion that this repository already has an automated generator, generic manifest renderer, validator, or device farm. Those pieces are future work; until then perform the steps explicitly, document evidence, and be candid about anything not verified.
+
+## Single-name execution contract
+
+A future request containing only a character's name authorizes the complete **base-card** workflow: research the character's original public-domain source and version, prepare and record the three-track plan, generate and assemble the layered assets, integrate the card into the existing showcase, and perform the applicable checks. Carry out the work rather than stopping after a concept or asking for routine design choices. Ask a focused question only if the intended identity or a genuinely blocking source/version fact remains unresolved after research. Stay within the card-art showcase; do not add gameplay or a skin system. Build an APK, commit or push only when separately requested or already authorized for that task.
+
+The current repository is a working showcase with manual card definitions, **not** an automated one-name generator, generic manifest renderer or device farm. Until those are implemented, perform each step explicitly. Adding a fourth or later card includes updating the card type and registry, required preloaded/mounted layers and error handling, selection/navigation and any hard-coded collection counts or mobile layout, without regressing the existing three. Keep the user-visible card ready before reveal. No new per-card frame, different base-card style or new evolution artwork. For the current showcase, reuse its one supported shared gold Legendary frame as the visual prototype; the existing Sherlock rarity label is a known placeholder and does not establish a new rarity design.
+
+The original project brief is historical; later accepted user corrections and the current guides govern conflicts: same shared frame per rarity, cost top left and power top right, large bottom title without extra card text, only character frame break above/beside the frame, environment clipped, bottom quarter behind the frame, no character-wide shimmer or ambient whole-image movement, and the current three evolution policies. Reuse the approved frame, motion and preloading behavior rather than reverting to older prompt suggestions.
 
 ## Non-negotiable gates
 
@@ -14,7 +22,7 @@ This is the required production workflow when a request supplies only a characte
 
 ### 1. Resolve the name and prepare the brief
 
-Identify the original comic, cartoon, book or other source and the intended character, distinguishing similarly named characters. Research the source when needed and record links and facts separately from creative interpretation. Base the name and identity on the original work; do not invent a random themed identity, copy an existing logo or use an actor likeness. Ask only if a material ambiguity cannot be resolved from context.
+**Always research first.** Follow [public-domain character research](PUBLIC_DOMAIN_CHARACTER_RESEARCH.md): resolve the original comic, cartoon, book or other work, creator, publication/appearance, exact source version, name, appearance, personality and signature details. Check and record public-domain evidence for the specific version and intended jurisdictions, with direct links and dates; distinguish original material from later adaptations and any still-protected additions. Identify uncertainties and avoid actor likenesses, modern protected character designs and copied logos. Base the recognizable name and identity on the researched work, never on a random invented theme. Ask only if a material identity or source-version ambiguity remains blocking after research.
 
 Record a stable card ID, source inspiration, recognizable name, proposed rarity and cost/power (mark gameplay values as proposals unless supplied), personality, pose, costume, signature object, setting, palette, light direction, composition and emotional focal point. Use the collection's locked painterly 2.5D animated-feature style, not a new per-card style. Plan the phone-size silhouette, clear face and hand, title and stat clearance, and a 2:3 composition that works inside Origin and as an Awakened/Unbound top-and-side frame break.
 
@@ -34,7 +42,7 @@ Add the intended package graph, complete required/preloaded assets and failure f
 
 ### 3. Generate and inspect the base composition
 
-Generate a coherent character/setting direction using the locked prompt and the brief. Match the existing cards' material, shape language and lighting. Preserve source prompts, model/tool, generation references and selected version. Reject output with identity drift, cut-off face/hands, illegible silhouette, baked borders, logos, stats, titles, text or watermarks. Confirm the composition can support all three preplanned moving pieces before generating the final layer set.
+Generate a coherent character/setting direction using the locked prompt, the verified source-version brief and the current Tarzan, Sherlock and Dracula cards as visual references. All base cards must share their collection's established art style, material rendering, shape language, detail and lighting treatment. Source-appropriate palette and character identity may vary; a skin is a separate future feature, not a new base-card style or evolution. Compare each candidate with all three existing cards at the same size before accepting it. Preserve source prompts, model/tool, generation references and selected version. Reject output with identity drift, cut-off face/hands, illegible silhouette, baked borders, logos, stats, titles, text or watermarks. Confirm the composition can support all three preplanned moving pieces before generating the final layer set.
 
 ### 4. Produce registered layers and underpainting
 
@@ -67,10 +75,12 @@ Verify the brief, sources, layer manifest, three-track plan, source artwork, all
 ## Card brief template
 
 ```text
-Character / stable ID / source links / identity assumptions:
+Requested name / resolved character / aliases / stable ID:
+Original creator, source work, publication, exact edition/character appearance, source links and access dates:
+Target jurisdictions / public-domain evidence / excluded later adaptation traits / unresolved uncertainties:
 Rarity (existing supported frame) / proposed cost and power:
 Pose / silhouette / clothing / signature prop / expression:
-Setting / palette / light direction / style references:
+Setting / palette / light direction / style comparison against Tarzan, Sherlock and Dracula:
 Frame-break silhouette / Origin fit / lower-quarter occlusion:
 Animation 1: piece, parent, anchor, depth, rest, underpaint, loop, visibility:
 Animation 2: piece, parent, anchor, depth, rest, underpaint, loop, visibility:
