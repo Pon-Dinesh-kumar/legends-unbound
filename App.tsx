@@ -22,6 +22,7 @@ const extraLayers: Record<string, string[]> = {
   kala: ['kala-leaves', 'kala-mist'],
   la: ['la-wheel', 'la-flame', 'la-pendant'],
   korak: ['korak-rope', 'korak-rain', 'korak-lightning'],
+  professor: ['professor-clock', 'professor-curtain', 'professor-post', 'professor-sheet'],
 };
 const requiredLayers = cards.flatMap(card => [...baseLayers, ...(extraLayers[card.id] ?? [])].map(layer => `${card.id}:${layer}`));
 

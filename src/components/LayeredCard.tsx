@@ -19,6 +19,7 @@ import { SaborSunrays } from './SaborSunrays';
 import { KalaBlink, KalaEnvironment } from './KalaMotion';
 import { LaEnvironment, LaPendant } from './LaMotion';
 import { KorakEnvironment, KorakRope } from './KorakMotion';
+import { ProfessorClock, ProfessorCurtain, ProfessorFieldPost } from './ProfessorMotion';
 
 const limit = (n: number) => { 'worklet'; return Math.max(-1, Math.min(1, n)); };
 const twinkle = (phase: number, center: number) => { 'worklet'; const t = Math.max(0, 1 - Math.abs(phase - center) / .065); return t * t * (3 - 2 * t); };
@@ -39,6 +40,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   const kalaLeafPhase = useSharedValue(0), kalaMistPhase = useSharedValue(0), kalaBlinkPhase = useSharedValue(0);
   const laWheelPhase = useSharedValue(0), laFirePhase = useSharedValue(0), laPendantPhase = useSharedValue(0);
   const korakRopePhase = useSharedValue(0), korakRainPhase = useSharedValue(0), korakLightningPhase = useSharedValue(0);
+  const professorClockPhase = useSharedValue(0), professorCurtainPhase = useSharedValue(0), professorSheetPhase = useSharedValue(0);
   const breath = useSharedValue(0), sparklePhase = useSharedValue(0), gemPhase = useSharedValue(0), reveal = useSharedValue(0);
   useEffect(() => {
     if (selected && frameMotionEnabled && !isBack && card.rarity !== 'RARE' && card.rarity !== 'COMMON') {
@@ -69,7 +71,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     return () => { cancelAnimation(scarfPhase); };
   }, [card.id, selected, isBack, motionEnabled, scarfPhase]);
   useEffect(() => {
-    if (card.id !== 'tarzan' && card.id !== 'sherlock' && card.id !== 'jane' && card.id !== 'sabor' && card.id !== 'kala' && card.id !== 'la' && card.id !== 'korak') return;
+    if (card.id !== 'tarzan' && card.id !== 'sherlock' && card.id !== 'jane' && card.id !== 'sabor' && card.id !== 'kala' && card.id !== 'la' && card.id !== 'korak' && card.id !== 'professor') return;
     const listener = AppState.addEventListener('change', state => setAppForeground(state === 'active'));
     return () => listener.remove();
   }, [card.id]);
@@ -139,6 +141,14 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
     } else { cancelAnimation(korakRopePhase); cancelAnimation(korakRainPhase); cancelAnimation(korakLightningPhase); korakRopePhase.value = 0; korakRainPhase.value = 0; korakLightningPhase.value = 0; }
     return () => { cancelAnimation(korakRopePhase); cancelAnimation(korakRainPhase); cancelAnimation(korakLightningPhase); };
   }, [card.id, selected, isBack, motionEnabled, appForeground, korakRopePhase, korakRainPhase, korakLightningPhase]);
+  useEffect(() => {
+    if (card.id === 'professor' && selected && !isBack && motionEnabled && appForeground) {
+      professorClockPhase.value = withRepeat(withTiming(1, { duration: 12000, easing: Easing.linear }), -1, false);
+      professorCurtainPhase.value = withRepeat(withTiming(1, { duration: 3600, easing: Easing.inOut(Easing.sin) }), -1, true);
+      professorSheetPhase.value = withRepeat(withTiming(1, { duration: 4900, easing: Easing.inOut(Easing.sin) }), -1, true);
+    } else { cancelAnimation(professorClockPhase); cancelAnimation(professorCurtainPhase); cancelAnimation(professorSheetPhase); professorClockPhase.value = 0; professorCurtainPhase.value = 0; professorSheetPhase.value = 0; }
+    return () => { cancelAnimation(professorClockPhase); cancelAnimation(professorCurtainPhase); cancelAnimation(professorSheetPhase); };
+  }, [card.id, selected, isBack, motionEnabled, appForeground, professorClockPhase, professorCurtainPhase, professorSheetPhase]);
   useEffect(() => { dragX.value = 0; dragY.value = 0; }, [level, reducedMotion, dragX, dragY]);
   const pan = Gesture.Pan().enabled(tiltEnabled).onUpdate(e => {
     dragX.value = limit(e.translationX / (width * .20));
@@ -167,8 +177,9 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   const foregroundScale = Math.max(1.08, (artWidth + 4) / (artWidth + 20 - 52));
   const backStyle = useAnimatedStyle(() => ({ transform: [{ scale: backgroundScale }, { translateX: -tiltHorizontal.value * 12 }, { translateY: -tiltVertical.value * 10 }] }));
   // Keep Sabor's outward tail clear of Cost when the card is tilted left.
-  const heroStyle = useAnimatedStyle(() => ({ transform: [{ translateX: card.id === 'sabor' ? Math.max(-8, tiltHorizontal.value * 16) + width * .04 : tiltHorizontal.value * 16 + (card.id === 'jane' ? width * .055 : 0) }, { translateY: tiltVertical.value * 13 + (card.id === 'sabor' && frameBreak ? width * 1.5 * .105 : 0) - (card.id === 'kala' ? width * .12 : 0) - (card.id === 'korak' ? width * 1.5 * (frameBreak ? .125 : .08) : 0) }, { scale: (frameBreak ? card.id === 'korak' ? 1.26 : 1.08 : card.id === 'korak' ? 1.12 : 1) * (card.id === 'sabor' ? .94 : card.id === 'korak' ? .85 : 1) }] }));
+  const heroStyle = useAnimatedStyle(() => ({ transform: [{ translateX: card.id === 'sabor' ? Math.max(-8, tiltHorizontal.value * 16) + width * .04 : tiltHorizontal.value * 16 + (card.id === 'jane' ? width * .055 : 0) }, { translateY: tiltVertical.value * 13 + (card.id === 'sabor' && frameBreak ? width * 1.5 * .105 : 0) - (card.id === 'kala' ? width * .12 : 0) - (card.id === 'korak' ? width * 1.5 * (frameBreak ? .125 : .08) : 0) - (card.id === 'professor' ? width * 1.5 * .05 : 0) }, { scale: (frameBreak ? card.id === 'korak' ? 1.26 : 1.08 : card.id === 'korak' ? 1.12 : 1) * (card.id === 'sabor' ? .94 : card.id === 'korak' || card.id === 'professor' ? .85 : 1) }] }));
   const frontStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 26 }, { translateY: tiltVertical.value * 22 }, { scale: foregroundScale }] }));
+  const professorMiddleStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 10 }, { translateY: tiltVertical.value * 8 }, { scale: foregroundScale }] }));
   const titleStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tiltHorizontal.value * 7 }, { translateY: tiltVertical.value * 5 }] }));
   const cardHeight = width * 1.5;
   const scarfFrame1 = useAnimatedStyle(() => ({ opacity: Math.min(1, scarfPhase.value) }));
@@ -197,6 +208,7 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   // compass are all above that clip even at tilt extremes, so only the upper
   // copy needs their SVG rig. Revisit this if Jane gains motion in the lower art.
   const renderHero = (left: number, top: number, heroWidth = width + 14, heroHeight = cardHeight + 7, showUpperDetails = true) => <Animated.View style={[{ position: 'absolute', left, top, width: heroWidth, height: heroHeight }, heroStyle]}>
+    {card.id === 'professor' && <View style={{ position: 'absolute', left: '27%', top: '92%', width: '46%', height: '4%', borderRadius: 100, backgroundColor: 'rgba(22,12,6,0.32)', transform: [{scaleY: .5}] }} />}
     {card.id === 'dracula' && <Animated.View style={[StyleSheet.absoluteFill, { transformOrigin: [(width + 14) * .25, (cardHeight + 7) * .33, 0] }, capeWave]}>
       <Image source={draculaCapeFrames[0]} resizeMode="contain" style={styles.scarf} onLoad={() => onLoad('cape-0')} onError={onError} />
       <Animated.View style={[StyleSheet.absoluteFill, scarfFrame1]}><Image source={draculaCapeFrames[1]} resizeMode="contain" style={styles.image} onLoad={() => onLoad('cape-1')} onError={onError} /></Animated.View>
@@ -216,8 +228,9 @@ export function LayeredCard({ card, width, tiltX, tiltY, selected, level, onLoad
   return <View style={styles.inspector}><GestureDetector gesture={pan}><View style={{ width, height: width * 1.5 }}>
     <Animated.View accessible accessibilityLabel={`${card.name}, ${evolutionPolicy[level].label}, level ${level === 'origin' ? 1 : level === 'awakened' ? 2 : 3} of 3, ${isBack ? 'card back' : 'card front'}.${tiltEnabled ? ' Drag to tilt.' : ''}`} style={[{ width, height: width * 1.5 }, cardStyle]}>
     <Animated.View pointerEvents="none" style={[styles.face, frontVisibility]}>
-    <FrameInterior>
-        <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View testID="card-background-layer" style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} />{card.id === 'tarzan' && <TarzanWaterfall source={card.background} width={width} active={motionEnabled && selected && !isBack} onError={onError} />}{card.id === 'sabor' && <SaborSunrays source={card.background} phase={saborRaysPhase} />}{card.id === 'kala' && <KalaEnvironment leafPhase={kalaLeafPhase} mistPhase={kalaMistPhase} onLoad={onLoad} onError={onError} />}{card.id === 'la' && <LaEnvironment wheel={laWheelPhase} fire={laFirePhase} width={width} onLoad={onLoad} onError={onError} />}{card.id === 'korak' && <KorakEnvironment rain={korakRainPhase} lightning={korakLightningPhase} width={width} onLoad={onLoad} onError={onError} />}</Animated.View></View>
+    <FrameInterior common={card.rarity === 'COMMON'}>
+        <View style={[styles.artWindow, { backgroundColor: card.glow }]}><Animated.View testID="card-background-layer" style={[StyleSheet.absoluteFill, backStyle]}><Image source={card.background} style={styles.image} resizeMode="cover" onLoad={() => onLoad('background')} onError={onError} />{card.id === 'tarzan' && <TarzanWaterfall source={card.background} width={width} active={motionEnabled && selected && !isBack} onError={onError} />}{card.id === 'sabor' && <SaborSunrays source={card.background} phase={saborRaysPhase} />}{card.id === 'kala' && <KalaEnvironment leafPhase={kalaLeafPhase} mistPhase={kalaMistPhase} onLoad={onLoad} onError={onError} />}{card.id === 'la' && <LaEnvironment wheel={laWheelPhase} fire={laFirePhase} width={width} onLoad={onLoad} onError={onError} />}{card.id === 'korak' && <KorakEnvironment rain={korakRainPhase} lightning={korakLightningPhase} width={width} onLoad={onLoad} onError={onError} />}{card.id === 'professor' && <><ProfessorClock phase={professorClockPhase} onLoad={onLoad} onError={onError} /><ProfessorCurtain phase={professorCurtainPhase} onLoad={onLoad} onError={onError} /></>}</Animated.View></View>
+        {card.id === 'professor' && <View pointerEvents="none" style={styles.artWindow}><Animated.View testID="professor-middle-depth" style={[styles.overlay, professorMiddleStyle]}><View style={[styles.image, { transform: [{ translateX: -width * .055 }] }]}><ProfessorFieldPost phase={professorSheetPhase} onLoad={onLoad} onError={onError} /></View></Animated.View></View>}
         <View pointerEvents="none" style={styles.artWindow}><Animated.View testID="card-foreground-layer" style={[styles.overlay, frontStyle]}><Image source={card.foreground} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('foreground')} onError={onError} /><View style={[StyleSheet.absoluteFill, { opacity: .8 }]}><Image source={card.effects} style={styles.image} resizeMode="stretch" onLoad={() => onLoad('effects')} onError={onError} /></View></Animated.View></View>
         {motionEnabled && <View pointerEvents="none" style={styles.lightClip}><Animated.View testID="background-idle-shine" style={[styles.shine, shineStyle]}><LinearGradient colors={['transparent', '#fff7d4aa', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View><Animated.View testID="background-tilt-shine" style={[styles.shine, interactiveShineStyle]}><LinearGradient colors={['transparent', '#fff7d4bb', 'transparent']} start={{x:0,y:0}} end={{x:1,y:0}} style={StyleSheet.absoluteFill} /></Animated.View></View>}
         {frameBreak ? <View pointerEvents="none" style={[styles.lowerHeroClip, { top: cardHeight * .75 }]}>{renderHero(-7, -cardHeight * .75 - 7, width + 14, cardHeight + 7, false)}</View> : <View pointerEvents="none" style={styles.artWindow}>{renderHero(8, cardHeight * .075, width - 26, cardHeight * .89)}</View>}

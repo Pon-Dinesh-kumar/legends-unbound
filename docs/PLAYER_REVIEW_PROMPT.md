@@ -2,6 +2,7 @@
 
 - Choose character scale and composition for the source and unique identity of each card; do not default to an oversized character, and keep the setting visible where it serves the scene.
 - Plan the actual frame-break silhouette and depth around Cost and Power badges before generating art; avoid badge collisions and do not hide them with a foreground overlay that cuts the character apart. Check rest, motion and tilt extremes.
+- Review the character's physical support and the card-specific middle/foreground depth planes while dragging through both extremes. Reject floating feet, props drifting off their supports, unmotivated depth layers, or titles with cluttered decoration and poor alignment.
 
 Run this review as the final stage of the [name-to-card workflow](CARD_GENERATION_PIPELINE.md), after implementation and technical checks. Review the actual running card and evidence, not just its prompt, code or a still mockup. Use the prompt below as a strict review instruction; do not treat it as proof that an independent reviewer or player has tested the result.
 
